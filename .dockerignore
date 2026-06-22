@@ -1,0 +1,23 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/dist/
+**/node_modules/
+
+# IDE / VCS
+**/.vs/
+**/.vscode/
+**/.idea/
+.git/
+.gitignore
+
+# Środowisko / sekrety
+**/.env
+**/*.env.local
+**/secrets.json
+
+# Inne
+**/*.user
+**/Dockerfile*
+**/.dockerignore
+README.md
