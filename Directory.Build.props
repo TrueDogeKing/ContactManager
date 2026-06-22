@@ -1,6 +1,6 @@
 <Project>
 
-  <!-- Wspólne ustawienia dla wszystkich projektów w solucji PhoneBookApp -->
+  <!-- Wspólne ustawienia dla wszystkich projektów w solucji ContactManager -->
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

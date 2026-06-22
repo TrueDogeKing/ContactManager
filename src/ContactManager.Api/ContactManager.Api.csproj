@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PhoneBookApp.Application\PhoneBookApp.Application.csproj" />
-    <ProjectReference Include="..\PhoneBookApp.Infrastructure\PhoneBookApp.Infrastructure.csproj" />
+    <ProjectReference Include="..\ContactManager.Application\ContactManager.Application.csproj" />
+    <ProjectReference Include="..\ContactManager.Infrastructure\ContactManager.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
