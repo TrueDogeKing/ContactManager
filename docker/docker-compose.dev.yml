@@ -1,0 +1,29 @@
+include:
+  - docker-compose.infra.yml
+
+services:
+  api:
+    container_name: contactmanager-api
+    build:
+      context: ..
+      dockerfile: src/ContactManager.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-phonebook};Username=${POSTGRES_USER:-phonebook};Password=${POSTGRES_PASSWORD:-phonebook}
+      - Database__MigrateAutomatically=true
+    ports:
+      - "5080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    container_name: contactmanager-frontend
+    build:
+      context: ../frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy

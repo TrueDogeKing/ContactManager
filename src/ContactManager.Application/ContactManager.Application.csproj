@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\PhoneBookApp.Domain\PhoneBookApp.Domain.csproj" />
+    <ProjectReference Include="..\ContactManager.Domain\ContactManager.Domain.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

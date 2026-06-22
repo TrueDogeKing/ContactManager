@@ -1,0 +1,15 @@
+{
+  "name": "contactmanager-scripts",
+  "private": true,
+  "description": "Skrypty orkiestrujące środowisko deweloperskie ContactManager.",
+  "scripts": {
+    "deps": "dotnet restore && dotnet tool restore && cd frontend && npm install",
+    "db:up": "docker compose -f docker/docker-compose.infra.yml up -d postgres",
+    "db:down": "docker compose -f docker/docker-compose.infra.yml down",
+    "db:reset": "docker compose -f docker/docker-compose.infra.yml down -v && docker compose -f docker/docker-compose.infra.yml up -d postgres",
+    "dev:up": "docker compose -f docker/docker-compose.dev.yml up --build",
+    "dev:down": "docker compose -f docker/docker-compose.dev.yml down",
+    "ef:add": "dotnet ef migrations add --project src/ContactManager.Infrastructure --startup-project src/ContactManager.Infrastructure --output-dir Persistence/Migrations",
+    "ef:update": "dotnet ef database update --project src/ContactManager.Infrastructure --startup-project src/ContactManager.Infrastructure"
+  }
+}
