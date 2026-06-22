@@ -1,4 +1,5 @@
 using System.Text;
+using ContactManager.Application;
 using ContactManager.Infrastructure;
 using ContactManager.Infrastructure.Auth;
 using ContactManager.Infrastructure.Persistence;
@@ -15,7 +16,8 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 
-// Warstwa infrastruktury (EF Core / PostgreSQL).
+// Warstwa aplikacji (serwisy, walidatory) i infrastruktury (EF Core / PostgreSQL).
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Uwierzytelnianie JWT.

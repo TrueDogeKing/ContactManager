@@ -1,6 +1,8 @@
 using ContactManager.Application.Interfaces;
+using ContactManager.Domain.Repositories;
 using ContactManager.Infrastructure.Auth;
 using ContactManager.Infrastructure.Persistence;
+using ContactManager.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
         services.AddSingleton<ITokenService, JwtTokenService>();
+        services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }
