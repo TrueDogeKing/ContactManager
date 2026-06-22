@@ -3,6 +3,7 @@ using ContactManager.Application;
 using ContactManager.Infrastructure;
 using ContactManager.Infrastructure.Auth;
 using ContactManager.Infrastructure.Persistence;
+using ContactManager.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -51,6 +52,12 @@ if (app.Configuration.GetValue<bool>("Database:MigrateAutomatically"))
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+}
+
+// Seed danych początkowych (domyślny administrator) – sterowane configiem.
+if (app.Configuration.GetValue<bool>("Database:SeedAutomatically"))
+{
+    await DataSeeder.SeedAdminUserAsync(app.Services);
 }
 
 // Configure the HTTP request pipeline.
