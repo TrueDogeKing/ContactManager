@@ -1,3 +1,5 @@
+using ContactManager.Application.Interfaces;
+using ContactManager.Infrastructure.Auth;
 using ContactManager.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +24,8 @@ public static class DependencyInjection
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
 
         return services;
     }
