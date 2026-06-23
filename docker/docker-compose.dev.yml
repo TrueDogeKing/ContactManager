@@ -1,3 +1,5 @@
+name: contactmanager
+
 include:
   - docker-compose.infra.yml
 

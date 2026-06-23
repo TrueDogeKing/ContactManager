@@ -22,5 +22,6 @@
     }
   },
   "forwardPorts": [5080, 8080, 5432],
-  "postCreateCommand": "dotnet restore && dotnet tool restore && (cd frontend && npm install)"
+  "remoteUser": "node",
+  "postCreateCommand": "vpr install"
 }

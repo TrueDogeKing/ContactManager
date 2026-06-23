@@ -1,0 +1,32 @@
+# cykl życia bazy/infrastruktury, bootstrap środowiska, narzędzia deweloperskie.
+
+# --- Baza danych (database lifecycle) ---
+
+[tasks."db:up"]
+description = "Start PostgreSQL (infra) w tle"
+run = "docker compose -f docker/docker-compose.infra.yml up -d postgres"
+
+[tasks."db:down"]
+description = "Zatrzymaj PostgreSQL"
+run = "docker compose -f docker/docker-compose.infra.yml down"
+
+[tasks."db:reset"]
+description = "Odtwórz PostgreSQL z czystym wolumenem"
+run = [
+  "docker compose -f docker/docker-compose.infra.yml down -v",
+  "docker compose -f docker/docker-compose.infra.yml up -d postgres",
+]
+
+[tasks."db:logs"]
+description = "Podgląd logów bazy"
+run = "docker logs -f contactmanager-db"
+
+# --- Narzędzia deweloperskie: migracje EF Core ---
+
+[tasks."ef:add"]
+description = "Nowa migracja EF Core (nazwę podaj jako argument)"
+run = "dotnet ef migrations add --project src/ContactManager.Infrastructure --startup-project src/ContactManager.Infrastructure --output-dir Persistence/Migrations"
+
+[tasks."ef:update"]
+description = "Zastosuj migracje EF Core"
+run = "dotnet ef database update --project src/ContactManager.Infrastructure --startup-project src/ContactManager.Infrastructure"

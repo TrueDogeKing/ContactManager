@@ -1,15 +1,14 @@
 {
-  "name": "contactmanager-scripts",
+  "name": "contactmanager",
   "private": true,
-  "description": "Skrypty orkiestrujące środowisko deweloperskie ContactManager.",
+  "description": "Warstwa zadań aplikacji uruchamiana przez VPR / Vite+ (vpr <task>). Infrastruktura/baza są w mise.toml (patrz CLAUDE.md Task Runner Rules).",
   "scripts": {
-    "deps": "dotnet restore && dotnet tool restore && cd frontend && npm install",
-    "db:up": "docker compose -f docker/docker-compose.infra.yml up -d postgres",
-    "db:down": "docker compose -f docker/docker-compose.infra.yml down",
-    "db:reset": "docker compose -f docker/docker-compose.infra.yml down -v && docker compose -f docker/docker-compose.infra.yml up -d postgres",
-    "dev:up": "docker compose -f docker/docker-compose.dev.yml up --build",
+    "install": "dotnet restore && dotnet tool restore && npm --prefix frontend install",
+    "dev": "docker compose -f docker/docker-compose.dev.yml up --build",
     "dev:down": "docker compose -f docker/docker-compose.dev.yml down",
-    "ef:add": "dotnet ef migrations add --project src/ContactManager.Infrastructure --startup-project src/ContactManager.Infrastructure --output-dir Persistence/Migrations",
-    "ef:update": "dotnet ef database update --project src/ContactManager.Infrastructure --startup-project src/ContactManager.Infrastructure"
+    "backend": "dotnet watch run --project src/ContactManager.Api",
+    "frontend": "npm --prefix frontend run dev",
+    "build": "dotnet build ContactManager.slnx -c Release && npm --prefix frontend run build",
+    "test": "dotnet test ContactManager.slnx"
   }
 }
