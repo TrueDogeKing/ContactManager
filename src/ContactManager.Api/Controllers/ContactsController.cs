@@ -15,16 +15,19 @@ public class ContactsController : ControllerBase
     private readonly IContactService _contactService;
     private readonly IValidator<CreateContactRequestDto> _createValidator;
     private readonly IValidator<UpdateContactRequestDto> _updateValidator;
+    private readonly IValidator<ChangeContactPasswordRequestDto> _changePasswordValidator;
 
     /// Creates controller with dependencies.
     public ContactsController(
         IContactService contactService,
         IValidator<CreateContactRequestDto> createValidator,
-        IValidator<UpdateContactRequestDto> updateValidator)
+        IValidator<UpdateContactRequestDto> updateValidator,
+        IValidator<ChangeContactPasswordRequestDto> changePasswordValidator)
     {
         _contactService = contactService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _changePasswordValidator = changePasswordValidator;
     }
 
     /// Returns all contacts. Public endpoint.
@@ -123,6 +126,46 @@ public class ContactsController : ControllerBase
         catch (EmailConflictException ex)
         {
             return Conflict(ex.Message);
+        }
+        catch (ConcurrencyConflictException ex)
+        {
+            return Conflict(ex.Message);
+        }
+    }
+
+    /// Changes a contact's password with optimistic concurrency control. Requires authentication.
+    [HttpPut("{id:guid}/password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ChangePassword(
+        Guid id,
+        [FromBody] ChangeContactPasswordRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _changePasswordValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            foreach (var error in validation.Errors)
+            {
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            }
+
+            return ValidationProblem(ModelState);
+        }
+
+        try
+        {
+            var changed = await _contactService.ChangePasswordAsync(id, request, cancellationToken);
+            if (!changed)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
         catch (ConcurrencyConflictException ex)
         {

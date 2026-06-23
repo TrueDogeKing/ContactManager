@@ -114,6 +114,24 @@ public class ContactService : IContactService
         return true;
     }
 
+    public async Task<bool> ChangePasswordAsync(
+        Guid id,
+        ChangeContactPasswordRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var contact = await _contacts.GetByIdAsync(id, cancellationToken);
+        if (contact is null)
+        {
+            return false;
+        }
+
+        contact.PasswordHash = _passwordHasher.Hash(request.NewPassword);
+        contact.UpdatedAt = DateTime.UtcNow;
+
+        await _contacts.UpdateAsync(contact, request.RowVersion, cancellationToken);
+        return true;
+    }
+
     /// Maps a contact entity to its API representation. Never exposes the password hash.
     private static ContactResponseDto ToResponse(Contact contact) =>
         new(

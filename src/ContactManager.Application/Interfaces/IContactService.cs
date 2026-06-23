@@ -20,4 +20,8 @@ public interface IContactService
 
     /// Deletes a contact. Returns false when it does not exist.
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// Changes a contact's password (rehashes it). Returns false when the contact does not exist.
+    /// Throws ConcurrencyConflictException on a RowVersion mismatch.
+    Task<bool> ChangePasswordAsync(Guid id, ChangeContactPasswordRequestDto request, CancellationToken cancellationToken = default);
 }
