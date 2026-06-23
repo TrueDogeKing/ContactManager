@@ -8,10 +8,10 @@ public class RefreshTokenSettings
 
     public string CookieName { get; set; } = "refreshToken";
 
-    /// <summary>Whether the cookie has the Secure flag (requires HTTPS). Always true in production.</summary>
+    /// Whether the cookie has the Secure flag (requires HTTPS). Always true in production.
     public bool CookieSecure { get; set; } = true;
 
-    /// <summary>Cookie SameSite mode ("Strict", "Lax", or "None").</summary>
+    /// Cookie SameSite mode ("Strict", "Lax", or "None").
     public string CookieSameSite { get; set; } = "Strict";
 
     public string CookiePath { get; set; } = "/api/auth";

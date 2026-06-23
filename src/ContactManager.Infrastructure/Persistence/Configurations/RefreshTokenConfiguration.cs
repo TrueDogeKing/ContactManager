@@ -7,7 +7,6 @@ namespace ContactManager.Infrastructure.Persistence.Configurations;
 /// EF Core configuration for <see cref="RefreshToken"/> entity.
 public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 {
-    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
         builder.ToTable("RefreshTokens");

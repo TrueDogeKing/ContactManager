@@ -5,13 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ContactManager.Application;
 
-/// <summary>
-/// Rejestracja usług warstwy aplikacji (logika biznesowa, walidatory).
-/// </summary>
 public static class DependencyInjection
 {
-    /// <summary>Rejestruje serwisy i walidatory warstwy aplikacji.</summary>
-    /// <param name="services">Kolekcja usług.</param>
+    /// Register services and validators application layer.
+    /// <param name="services">Service collection.</param>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IAuthService, AuthService>();

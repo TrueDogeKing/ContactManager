@@ -28,7 +28,6 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
     }
 
-    /// <inheritdoc />
     public async Task<AuthResult?> LoginAsync(
         LoginRequestDto request,
         CancellationToken cancellationToken = default)
@@ -42,7 +41,6 @@ public class AuthService : IAuthService
         return await IssueTokensAsync(user, cancellationToken);
     }
 
-    /// <inheritdoc />
     public async Task<AuthResult?> RefreshAsync(
         string? rawRefreshToken,
         CancellationToken cancellationToken = default)
@@ -94,7 +92,6 @@ public class AuthService : IAuthService
             refresh.ExpiresAtUtc);
     }
 
-    /// <inheritdoc />
     public async Task LogoutAsync(
         string? rawRefreshToken,
         CancellationToken cancellationToken = default)

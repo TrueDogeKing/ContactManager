@@ -6,17 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ContactManager.Infrastructure.Persistence.Seed;
 
-/// <summary>
-/// Seeduje dane początkowe niewchodzące w skład migracji (np. domyślne konto administratora).
-/// </summary>
 public static class DataSeeder
 {
-    /// <summary>
-    /// Tworzy domyślne konto administratora, jeśli jeszcze nie istnieje.
-    /// Dane logowania pochodzą z sekcji konfiguracji "Admin" (z wartościami domyślnymi).
-    /// </summary>
-    /// <param name="services">Dostawca usług aplikacji.</param>
-    /// <param name="cancellationToken">Token anulowania.</param>
+    /// Creates the default administrator account if it doesn't already exist.
+    /// Login details come from the "Admin" configuration section (with default values).
+    /// <param name="services">Application service provider.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public static async Task SeedAdminUserAsync(
         IServiceProvider services,
         CancellationToken cancellationToken = default)

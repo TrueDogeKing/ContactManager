@@ -7,7 +7,6 @@ namespace ContactManager.Infrastructure.Persistence.Configurations;
 /// <summary>Konfiguracja EF Core dla encji <see cref="Contact"/>.</summary>
 public class ContactConfiguration : IEntityTypeConfiguration<Contact>
 {
-    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<Contact> builder)
     {
         builder.ToTable("Contacts");

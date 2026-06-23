@@ -15,7 +15,6 @@ namespace ContactManager.Infrastructure.Persistence.Migrations
     [Migration("20260623093055_AddRefreshTokens")]
     partial class AddRefreshTokens
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

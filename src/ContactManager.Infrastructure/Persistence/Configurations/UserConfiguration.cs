@@ -7,7 +7,6 @@ namespace ContactManager.Infrastructure.Persistence.Configurations;
 /// <summary>Konfiguracja EF Core dla encji <see cref="User"/>.</summary>
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("Users");

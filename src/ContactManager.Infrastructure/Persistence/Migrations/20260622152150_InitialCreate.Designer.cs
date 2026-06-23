@@ -15,7 +15,6 @@ namespace ContactManager.Infrastructure.Persistence.Migrations
     [Migration("20260622152150_InitialCreate")]
     partial class InitialCreate
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

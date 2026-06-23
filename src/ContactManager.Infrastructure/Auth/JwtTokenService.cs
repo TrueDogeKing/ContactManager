@@ -26,7 +26,6 @@ public class JwtTokenService : ITokenService
         _refreshSettings = refreshSettings.Value;
     }
 
-    /// <inheritdoc />
     public AccessToken CreateAccessToken(User user)
     {
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
@@ -52,7 +51,6 @@ public class JwtTokenService : ITokenService
         return new AccessToken(encoded, expiresAtUtc);
     }
 
-    /// <inheritdoc />
     public RefreshTokenInfo GenerateRefreshToken()
     {
         var bytes = RandomNumberGenerator.GetBytes(RefreshTokenBytes);
@@ -65,7 +63,6 @@ public class JwtTokenService : ITokenService
         return new RefreshTokenInfo(rawToken, HashRefreshToken(rawToken), expiresAtUtc);
     }
 
-    /// <inheritdoc />
     public string HashRefreshToken(string rawToken)
     {
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));

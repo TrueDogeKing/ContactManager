@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ContactManager.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
     public partial class AddRefreshTokens : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -46,7 +44,6 @@ namespace ContactManager.Infrastructure.Persistence.Migrations
                 column: "UserId");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
