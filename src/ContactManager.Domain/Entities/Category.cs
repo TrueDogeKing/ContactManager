@@ -1,19 +1,21 @@
 namespace ContactManager.Domain.Entities;
 
-/// <summary>
-/// Kategoria kontaktu (np. Służbowy, Prywatny, Inny). Dane słownikowe przechowywane w bazie.
-/// </summary>
+/// Contact category (e.g. Służbowy, Prywatny, Inny). Dictionary data stored in the database.
 public class Category
 {
-    /// <summary>Unikalny identyfikator kategorii.</summary>
+    /// Unique category identifier.
     public int Id { get; set; }
 
-    /// <summary>Nazwa kategorii (unikalna).</summary>
+    /// Category name (unique).
     public required string Name { get; set; }
 
-    /// <summary>Podkategorie należące do tej kategorii.</summary>
+    /// Whether the category allows entering a free-text subcategory (e.g. "Inny")
+    /// instead of selecting one from the dictionary.
+    public bool AllowsCustomSubcategory { get; set; }
+
+    /// Subcategories belonging to this category.
     public ICollection<Subcategory> Subcategories { get; set; } = new List<Subcategory>();
 
-    /// <summary>Kontakty przypisane do tej kategorii.</summary>
+    /// Contacts assigned to this category.
     public ICollection<Contact> Contacts { get; set; } = new List<Contact>();
 }
