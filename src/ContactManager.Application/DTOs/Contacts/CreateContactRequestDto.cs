@@ -1,5 +1,6 @@
 namespace ContactManager.Application.DTOs.Contacts;
 
+/// Input data for creating a new contact. Password is provided in plain text and gets hashed.
 public record CreateContactRequestDto(
     string FirstName,
     string LastName,

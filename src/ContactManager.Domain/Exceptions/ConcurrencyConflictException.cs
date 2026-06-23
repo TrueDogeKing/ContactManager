@@ -1,7 +1,7 @@
 namespace ContactManager.Domain.Exceptions;
 
-/// Sygnalize conflict optimistic concurrency – entity was modified.
-/// by different process between read and write. Map on HTTP 409.
+/// Signals an optimistic concurrency conflict: the entity was modified by another
+/// process between read and write. Mapped to HTTP 409.
 public class ConcurrencyConflictException : Exception
 {
     public ConcurrencyConflictException(string message) : base(message)

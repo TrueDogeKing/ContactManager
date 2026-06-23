@@ -1,8 +1,6 @@
 namespace ContactManager.Application.DTOs.Contacts;
 
-/// <param name="CreatedAt">Creation date (UTC).</param>
-/// <param name="UpdatedAt">Date of last modification (UTC).</param>
-/// <param name="RowVersion">Concurrency token for update operations.</param>
+/// Contact representation returned by the API. Never contains the password hash.
 public record ContactResponseDto(
     Guid Id,
     string FirstName,

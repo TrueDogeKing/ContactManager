@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ContactManager.Infrastructure.Repositories;
 
-/// Implementacja <see cref="IContactRepository"/> oparta o <see cref="AppDbContext"/>.
+/// Implementation of IContactRepository backed by AppDbContext.
 public class ContactRepository : IContactRepository
 {
     private readonly AppDbContext _db;
@@ -41,7 +41,7 @@ public class ContactRepository : IContactRepository
         uint expectedRowVersion,
         CancellationToken cancellationToken = default)
     {
-        // Optimistic concurrency: porównujemy token z odczytu klienta z bieżącym stanem w bazie.
+        // Optimistic concurrency: compare the client's read token against the current state in the database.
         _db.Entry(contact).Property(c => c.RowVersion).OriginalValue = expectedRowVersion;
 
         try
@@ -51,7 +51,7 @@ public class ContactRepository : IContactRepository
         catch (DbUpdateConcurrencyException ex)
         {
             throw new ConcurrencyConflictException(
-                "Kontakt został zmodyfikowany przez inny proces.", ex);
+                "The contact was modified by another process.", ex);
         }
     }
 
