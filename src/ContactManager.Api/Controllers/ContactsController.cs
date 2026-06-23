@@ -83,6 +83,10 @@ public class ContactsController : ControllerBase
             var created = await _contactService.CreateAsync(request, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
+        catch (BusinessRuleViolationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
         catch (EmailConflictException ex)
         {
             return Conflict(ex.Message);
@@ -122,6 +126,10 @@ public class ContactsController : ControllerBase
             }
 
             return NoContent();
+        }
+        catch (BusinessRuleViolationException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (EmailConflictException ex)
         {

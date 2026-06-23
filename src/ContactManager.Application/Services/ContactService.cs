@@ -11,12 +11,17 @@ namespace ContactManager.Application.Services;
 public class ContactService : IContactService
 {
     private readonly IContactRepository _contacts;
+    private readonly ICategoryRepository _categories;
     private readonly IPasswordHasher _passwordHasher;
 
     /// Creates service with dependencies.
-    public ContactService(IContactRepository contacts, IPasswordHasher passwordHasher)
+    public ContactService(
+        IContactRepository contacts,
+        ICategoryRepository categories,
+        IPasswordHasher passwordHasher)
     {
         _contacts = contacts;
+        _categories = categories;
         _passwordHasher = passwordHasher;
     }
 
@@ -42,6 +47,9 @@ public class ContactService : IContactService
             throw new EmailConflictException($"A contact with email '{request.Email}' already exists.");
         }
 
+        var customSubcategory = await ValidateCategorySelectionAsync(
+            request.CategoryId, request.SubcategoryId, request.CustomSubcategory, cancellationToken);
+
         var contact = new Contact
         {
             Id = Guid.NewGuid(),
@@ -53,7 +61,7 @@ public class ContactService : IContactService
             BirthDate = request.BirthDate,
             CategoryId = request.CategoryId,
             SubcategoryId = request.SubcategoryId,
-            CustomSubcategory = request.CustomSubcategory,
+            CustomSubcategory = customSubcategory,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -85,6 +93,9 @@ public class ContactService : IContactService
             }
         }
 
+        var customSubcategory = await ValidateCategorySelectionAsync(
+            request.CategoryId, request.SubcategoryId, request.CustomSubcategory, cancellationToken);
+
         contact.FirstName = request.FirstName;
         contact.LastName = request.LastName;
         contact.Email = request.Email;
@@ -92,7 +103,7 @@ public class ContactService : IContactService
         contact.BirthDate = request.BirthDate;
         contact.CategoryId = request.CategoryId;
         contact.SubcategoryId = request.SubcategoryId;
-        contact.CustomSubcategory = request.CustomSubcategory;
+        contact.CustomSubcategory = customSubcategory;
         contact.UpdatedAt = DateTime.UtcNow;
 
         await _contacts.UpdateAsync(contact, request.RowVersion, cancellationToken);
@@ -130,6 +141,72 @@ public class ContactService : IContactService
 
         await _contacts.UpdateAsync(contact, request.RowVersion, cancellationToken);
         return true;
+    }
+
+    /// Validates the category/subcategory selection against the dictionary in the database and
+    /// returns the normalized custom subcategory (trimmed, or null when empty). Rules:
+    /// a category that has dictionary subcategories requires SubcategoryId from that same category
+    /// and forbids custom text; a category that allows custom subcategory accepts free text only;
+    /// any other category accepts neither. Throws BusinessRuleViolationException on a mismatch.
+    private async Task<string?> ValidateCategorySelectionAsync(
+        int categoryId,
+        int? subcategoryId,
+        string? customSubcategory,
+        CancellationToken cancellationToken)
+    {
+        var category = await _categories.GetByIdWithSubcategoriesAsync(categoryId, cancellationToken);
+        if (category is null)
+        {
+            throw new BusinessRuleViolationException($"Category {categoryId} does not exist.");
+        }
+
+        var normalizedCustom = string.IsNullOrWhiteSpace(customSubcategory) ? null : customSubcategory.Trim();
+        var hasDictionarySubcategories = category.Subcategories.Count > 0;
+
+        if (hasDictionarySubcategories)
+        {
+            if (subcategoryId is null)
+            {
+                throw new BusinessRuleViolationException(
+                    $"Category '{category.Name}' requires a subcategory from the dictionary.");
+            }
+
+            if (category.Subcategories.All(s => s.Id != subcategoryId))
+            {
+                throw new BusinessRuleViolationException(
+                    $"Subcategory {subcategoryId} does not belong to category '{category.Name}'.");
+            }
+
+            if (normalizedCustom is not null)
+            {
+                throw new BusinessRuleViolationException(
+                    $"Category '{category.Name}' does not allow a custom subcategory.");
+            }
+
+            return null;
+        }
+
+        // Category without dictionary subcategories: a dictionary subcategory is never valid.
+        if (subcategoryId is not null)
+        {
+            throw new BusinessRuleViolationException(
+                $"Category '{category.Name}' does not have dictionary subcategories.");
+        }
+
+        if (category.AllowsCustomSubcategory)
+        {
+            // Custom text is optional for these categories (e.g. "Inny").
+            return normalizedCustom;
+        }
+
+        // Any other category (e.g. "Prywatny") allows neither a dictionary nor a custom subcategory.
+        if (normalizedCustom is not null)
+        {
+            throw new BusinessRuleViolationException(
+                $"Category '{category.Name}' does not allow a subcategory.");
+        }
+
+        return null;
     }
 
     /// Maps a contact entity to its API representation. Never exposes the password hash.
