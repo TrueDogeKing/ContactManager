@@ -1,3 +1,5 @@
+name: contactmanager
+
 include:
   - docker-compose.infra.yml
 
@@ -12,6 +14,7 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-phonebook};Username=${POSTGRES_USER:-phonebook};Password=${POSTGRES_PASSWORD:-phonebook}
       - Database__MigrateAutomatically=true
+      - Database__SeedAutomatically=true
     ports:
       - "5080:8080"
     depends_on:

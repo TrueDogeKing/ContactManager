@@ -9,7 +9,6 @@ namespace ContactManager.Infrastructure.Persistence;
 /// </summary>
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
-    /// <inheritdoc />
     public AppDbContext CreateDbContext(string[] args)
     {
         // Połączenie pobierane ze zmiennej środowiskowej lub domyślne dla developmentu.

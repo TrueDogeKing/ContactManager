@@ -7,7 +7,6 @@ namespace ContactManager.Infrastructure.Persistence.Configurations;
 /// <summary>Konfiguracja EF Core dla encji <see cref="Subcategory"/> wraz z danymi słownikowymi (seed).</summary>
 public class SubcategoryConfiguration : IEntityTypeConfiguration<Subcategory>
 {
-    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<Subcategory> builder)
     {
         builder.ToTable("Subcategories");
