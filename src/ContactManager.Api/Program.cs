@@ -10,14 +10,10 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 
-// Warstwa aplikacji (serwisy, walidatory) i infrastruktury (EF Core / PostgreSQL).
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -25,6 +21,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
     ?? throw new InvalidOperationException("Brak sekcji konfiguracji 'Jwt'.");
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+builder.Services.Configure<RefreshTokenSettings>(
+    builder.Configuration.GetSection(RefreshTokenSettings.SectionName));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -54,7 +52,7 @@ if (app.Configuration.GetValue<bool>("Database:MigrateAutomatically"))
     db.Database.Migrate();
 }
 
-// Seed danych początkowych (domyślny administrator) – sterowane configiem.
+// Seed initial data (default admin)
 if (app.Configuration.GetValue<bool>("Database:SeedAutomatically"))
 {
     await DataSeeder.SeedAdminUserAsync(app.Services);

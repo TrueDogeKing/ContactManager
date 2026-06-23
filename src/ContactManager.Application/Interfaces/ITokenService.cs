@@ -3,12 +3,13 @@ using ContactManager.Domain.Entities;
 
 namespace ContactManager.Application.Interfaces;
 
-/// <summary>
-/// Abstrakcja generowania tokenów dostępu (JWT) dla użytkowników.
-/// </summary>
 public interface ITokenService
 {
-    /// <summary>Tworzy token dostępu dla wskazanego użytkownika.</summary>
-    /// <param name="user">Użytkownik, dla którego generowany jest token.</param>
-    AccessToken CreateToken(User user);
+    AccessToken CreateAccessToken(User user);
+
+    RefreshTokenInfo GenerateRefreshToken();
+
+    /// Returns the hash (SHA-256) of the raw refresh token value.
+    /// <param name="rawToken">The raw refresh token value.</param>
+    string HashRefreshToken(string rawToken);
 }

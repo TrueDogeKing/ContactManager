@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using ContactManager.Application.Interfaces;
 using ContactManager.Application.Models;
@@ -9,18 +10,24 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ContactManager.Infrastructure.Auth;
 
-/// <summary>
-/// Implementacja <see cref="ITokenService"/> generująca podpisane tokeny JWT (HMAC-SHA256).
-/// </summary>
+/// Implementation of <see cref="ITokenService"/>: generates signed JWT tokens (HMAC-SHA256)
+/// and cryptographically random refresh tokens.
 public class JwtTokenService : ITokenService
 {
-    private readonly JwtSettings _settings;
+    private const int RefreshTokenBytes = 32;
 
-    /// <summary>Tworzy serwis z ustawieniami JWT.</summary>
-    public JwtTokenService(IOptions<JwtSettings> settings) => _settings = settings.Value;
+    private readonly JwtSettings _settings;
+    private readonly RefreshTokenSettings _refreshSettings;
+
+    ///Creates service with JWT and refresh token settings.
+    public JwtTokenService(IOptions<JwtSettings> settings, IOptions<RefreshTokenSettings> refreshSettings)
+    {
+        _settings = settings.Value;
+        _refreshSettings = refreshSettings.Value;
+    }
 
     /// <inheritdoc />
-    public AccessToken CreateToken(User user)
+    public AccessToken CreateAccessToken(User user)
     {
         var expiresAtUtc = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
 
@@ -43,5 +50,25 @@ public class JwtTokenService : ITokenService
 
         var encoded = new JwtSecurityTokenHandler().WriteToken(token);
         return new AccessToken(encoded, expiresAtUtc);
+    }
+
+    /// <inheritdoc />
+    public RefreshTokenInfo GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(RefreshTokenBytes);
+        var rawToken = Convert.ToBase64String(bytes)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+
+        var expiresAtUtc = DateTime.UtcNow.AddDays(_refreshSettings.ExpiryDays);
+        return new RefreshTokenInfo(rawToken, HashRefreshToken(rawToken), expiresAtUtc);
+    }
+
+    /// <inheritdoc />
+    public string HashRefreshToken(string rawToken)
+    {
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        return Convert.ToHexString(hash);
     }
 }

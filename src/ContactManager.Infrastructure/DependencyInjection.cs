@@ -9,15 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ContactManager.Infrastructure;
 
-/// <summary>
-/// Rejestracja usług warstwy infrastruktury w kontenerze DI.
-/// </summary>
+/// Registration of infrastructure services in the DI container.
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Rejestruje <see cref="Persistence.AppDbContext"/> z dostawcą PostgreSQL (Npgsql)
-    /// oraz pozostałe usługi infrastruktury.
-    /// </summary>
+    /// Registers <see cref="Persistence.AppDbContext"/> with a PostgreSQL (Npgsql) provider
+    /// and other infrastructure services.
     /// <param name="services">Kolekcja usług.</param>
     /// <param name="configuration">Konfiguracja aplikacji (źródło connection stringa).</param>
     public static IServiceCollection AddInfrastructure(
@@ -30,6 +26,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         return services;
     }
