@@ -1,4 +1,5 @@
 using System.Text;
+using ContactManager.Api.Errors;
 using ContactManager.Application;
 using ContactManager.Infrastructure;
 using ContactManager.Infrastructure.Auth;
@@ -13,6 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+
+// Global exception handling with ProblemDetails responses.
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -59,6 +64,8 @@ if (app.Configuration.GetValue<bool>("Database:SeedAutomatically"))
 }
 
 // Configure the HTTP request pipeline.
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

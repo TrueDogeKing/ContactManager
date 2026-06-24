@@ -1,6 +1,5 @@
 using ContactManager.Application.DTOs.Contacts;
 using ContactManager.Application.Interfaces;
-using ContactManager.Domain.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -78,19 +77,8 @@ public class ContactsController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        try
-        {
-            var created = await _contactService.CreateAsync(request, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-        catch (BusinessRuleViolationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (EmailConflictException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        var created = await _contactService.CreateAsync(request, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     /// Updates an existing contact with optimistic concurrency control. Requires authentication.
@@ -117,28 +105,13 @@ public class ContactsController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        try
+        var updated = await _contactService.UpdateAsync(id, request, cancellationToken);
+        if (updated is null)
         {
-            var updated = await _contactService.UpdateAsync(id, request, cancellationToken);
-            if (updated is null)
-            {
-                return NotFound();
-            }
+            return NotFound();
+        }
 
-            return NoContent();
-        }
-        catch (BusinessRuleViolationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (EmailConflictException ex)
-        {
-            return Conflict(ex.Message);
-        }
-        catch (ConcurrencyConflictException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return NoContent();
     }
 
     /// Changes a contact's password with optimistic concurrency control. Requires authentication.
@@ -165,20 +138,13 @@ public class ContactsController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        try
+        var changed = await _contactService.ChangePasswordAsync(id, request, cancellationToken);
+        if (!changed)
         {
-            var changed = await _contactService.ChangePasswordAsync(id, request, cancellationToken);
-            if (!changed)
-            {
-                return NotFound();
-            }
+            return NotFound();
+        }
 
-            return NoContent();
-        }
-        catch (ConcurrencyConflictException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return NoContent();
     }
 
     /// Deletes a contact. Requires authentication.
