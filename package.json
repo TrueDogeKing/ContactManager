@@ -9,6 +9,7 @@
     "backend": "dotnet watch run --project src/ContactManager.Api",
     "frontend": "cd frontend && vp dev",
     "build": "dotnet build ContactManager.slnx -c Release && (cd frontend && vp build)",
-    "test": "dotnet test ContactManager.slnx"
+    "test": "dotnet test ContactManager.slnx",
+    "test:unit": "dotnet test tests/ContactManager.UnitTests/ContactManager.UnitTests.csproj"
   }
 }
