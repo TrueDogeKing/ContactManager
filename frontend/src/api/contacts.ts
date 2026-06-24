@@ -26,3 +26,8 @@ export async function createContact(request: CreateContactRequest): Promise<Cont
 export async function updateContact(id: string, request: UpdateContactRequest): Promise<void> {
   await api.put(`/contacts/${id}`, request);
 }
+
+// Deletes a contact. Requires authentication. Returns nothing (204 No Content).
+export async function deleteContact(id: string): Promise<void> {
+  await api.delete(`/contacts/${id}`);
+}

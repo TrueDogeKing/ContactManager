@@ -1,19 +1,40 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
-import { getContact } from '../api/contacts';
+import { deleteContact, getContact } from '../api/contacts';
+import { getApiErrorMessage } from '../api/errors';
 import { useAuth } from '../auth/AuthContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 import type { ContactResponse } from '../api/types';
 
 // Public page showing a single contact's details.
 export default function ContactDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [contact, setContact] = useState<ContactResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Tracks which id the current contact/error belongs to; loading is derived from it,
   // so we never call setState synchronously inside the effect when id changes.
   const [loadedId, setLoadedId] = useState<string | undefined>(undefined);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    if (!id) return;
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      await deleteContact(id);
+      navigate('/');
+    } catch (err) {
+      setDeleteError(getApiErrorMessage(err, 'Failed to delete the contact.'));
+      setConfirmingDelete(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -68,11 +89,22 @@ export default function ContactDetailsPage() {
           {contact.firstName} {contact.lastName}
         </h1>
         {isAuthenticated && (
-          <Link to={`/contacts/${contact.id}/edit`} className="button-link">
-            Edit
-          </Link>
+          <div className="actions">
+            <Link to={`/contacts/${contact.id}/edit`} className="button-link">
+              Edit
+            </Link>
+            <button
+              type="button"
+              className="button-link danger"
+              onClick={() => setConfirmingDelete(true)}
+            >
+              Delete
+            </button>
+          </div>
         )}
       </div>
+
+      {deleteError && <p role="alert">{deleteError}</p>}
 
       <dl className="details">
         <dt>Email</dt>
@@ -90,6 +122,17 @@ export default function ContactDetailsPage() {
         <dt>Subcategory</dt>
         <dd>{subcategory}</dd>
       </dl>
+
+      {confirmingDelete && (
+        <ConfirmDialog
+          title="Delete contact"
+          message={`Delete ${contact.firstName} ${contact.lastName}? This cannot be undone.`}
+          confirmLabel="Delete"
+          busy={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmingDelete(false)}
+        />
+      )}
     </main>
   );
 }
