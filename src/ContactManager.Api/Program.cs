@@ -71,10 +71,11 @@ if (app.Configuration.GetValue<bool>("Database:MigrateAutomatically"))
     db.Database.Migrate();
 }
 
-// Seed initial data (default admin)
+// Seed initial data (default admin + sample contacts)
 if (app.Configuration.GetValue<bool>("Database:SeedAutomatically"))
 {
     await DataSeeder.SeedAdminUserAsync(app.Services);
+    await DataSeeder.SeedContactsAsync(app.Services);
 }
 
 // Configure the HTTP request pipeline.
