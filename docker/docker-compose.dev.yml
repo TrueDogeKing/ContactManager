@@ -6,6 +6,7 @@ include:
 services:
   api:
     container_name: contactmanager-api
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: src/ContactManager.Api/Dockerfile
@@ -23,6 +24,7 @@ services:
 
   frontend:
     container_name: contactmanager-frontend
+    restart: unless-stopped
     build:
       context: ../frontend
     ports:

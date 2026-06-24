@@ -3,12 +3,12 @@
   "private": true,
   "description": "Warstwa zadań aplikacji uruchamiana przez VPR / Vite+ (vpr <task>). Infrastruktura/baza są w mise.toml (patrz CLAUDE.md Task Runner Rules).",
   "scripts": {
-    "install": "dotnet restore && dotnet tool restore && npm --prefix frontend install",
+    "install": "dotnet restore && dotnet tool restore && (cd frontend && vp install)",
     "dev": "docker compose -f docker/docker-compose.dev.yml up --build",
     "dev:down": "docker compose -f docker/docker-compose.dev.yml down",
     "backend": "dotnet watch run --project src/ContactManager.Api",
-    "frontend": "npm --prefix frontend run dev",
-    "build": "dotnet build ContactManager.slnx -c Release && npm --prefix frontend run build",
+    "frontend": "cd frontend && vp dev",
+    "build": "dotnet build ContactManager.slnx -c Release && (cd frontend && vp build)",
     "test": "dotnet test ContactManager.slnx"
   }
 }

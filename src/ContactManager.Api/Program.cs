@@ -63,7 +63,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Automatyczne zastosowanie migracji (np. przy starcie kontenera) – sterowane configiem.
+// Automated migration on container start.
 if (app.Configuration.GetValue<bool>("Database:MigrateAutomatically"))
 {
     using var scope = app.Services.CreateScope();
@@ -71,10 +71,11 @@ if (app.Configuration.GetValue<bool>("Database:MigrateAutomatically"))
     db.Database.Migrate();
 }
 
-// Seed initial data (default admin)
+// Seed initial data (default admin + sample contacts)
 if (app.Configuration.GetValue<bool>("Database:SeedAutomatically"))
 {
     await DataSeeder.SeedAdminUserAsync(app.Services);
+    await DataSeeder.SeedContactsAsync(app.Services);
 }
 
 // Configure the HTTP request pipeline.

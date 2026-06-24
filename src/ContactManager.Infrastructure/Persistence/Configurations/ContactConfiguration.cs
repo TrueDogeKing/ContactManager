@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ContactManager.Infrastructure.Persistence.Configurations;
 
-/// <summary>Konfiguracja EF Core dla encji <see cref="Contact"/>.</summary>
+/// Configuration for the <see cref="Contact"/> entity in EF Core.
 public class ContactConfiguration : IEntityTypeConfiguration<Contact>
 {
     public void Configure(EntityTypeBuilder<Contact> builder)
@@ -25,7 +25,6 @@ public class ContactConfiguration : IEntityTypeConfiguration<Contact>
             .IsRequired()
             .HasMaxLength(256);
 
-        // Unikalny indeks na adres e-mail kontaktu.
         builder.HasIndex(c => c.Email)
             .IsUnique();
 
@@ -42,19 +41,20 @@ public class ContactConfiguration : IEntityTypeConfiguration<Contact>
         builder.Property(c => c.CreatedAt)
             .IsRequired();
 
-        // Relacja: Kontakt -> Kategoria (wymagana). Brak kaskadowego usuwania słownika.
+        // Relationship: Contact -> Category (required).
+        // Prevents cascade deletion of dictionary/reference data.
         builder.HasOne(c => c.Category)
             .WithMany(cat => cat.Contacts)
             .HasForeignKey(c => c.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Relacja: Kontakt -> Podkategoria (opcjonalna).
+        // Relationship: Contact -> Subcategory (optional).
         builder.HasOne(c => c.Subcategory)
             .WithMany(s => s.Contacts)
             .HasForeignKey(c => c.SubcategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Optimistic concurrency oparte o systemową kolumnę PostgreSQL "xmin".
+        // Optimistic concurrency based on PostgreSQL's system column "xmin".
         builder.Property(c => c.RowVersion)
             .HasColumnName("xmin")
             .HasColumnType("xid")

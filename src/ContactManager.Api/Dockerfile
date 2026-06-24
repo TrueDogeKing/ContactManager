@@ -1,5 +1,3 @@
-# Multi-stage build dla ContactManager.Api.
-# Kontekst budowania: katalog główny repozytorium (patrz docker/docker-compose.dev.yml).
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 
 ARG BUILD_CONFIGURATION=Release
@@ -24,8 +22,9 @@ RUN dotnet publish "ContactManager.Api.csproj" \
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 
-# curl – do healthchecka; icu/tzdata – globalizacja (polskie znaki, strefy czasowe).
-RUN apk add --no-cache curl icu-libs tzdata
+# curl – do healthchecka; icu/tzdata – globalizacja (polskie znaki, strefy czasowe);
+# krb5-libs – biblioteka GSSAPI wymagana przez Npgsql (libgssapi_krb5.so.2).
+RUN apk add --no-cache curl icu-libs tzdata krb5-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 ENV ASPNETCORE_HTTP_PORTS=8080
 
