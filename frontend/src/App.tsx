@@ -4,6 +4,7 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import Header from './components/Header';
 import ContactsListPage from './pages/ContactsListPage';
 import ContactDetailsPage from './pages/ContactDetailsPage';
+import AddContactPage from './pages/AddContactPage';
 import LoginPage from './pages/LoginPage';
 import './App.css';
 
@@ -18,8 +19,9 @@ export default function App() {
           <Route path="/contacts/:id" element={<ContactDetailsPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Protected routes (add/edit contact) are added under this guard in the next points. */}
+          {/* Protected routes (require authentication) */}
           <Route element={<ProtectedRoute />}>
+            <Route path="/contacts/new" element={<AddContactPage />} />
           </Route>
         </Routes>
       </AuthProvider>

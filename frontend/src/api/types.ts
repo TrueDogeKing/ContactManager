@@ -28,3 +28,31 @@ export interface ContactResponse {
   updatedAt: string | null;
   rowVersion: number;
 }
+
+// Mirrors CreateContactRequestDto. birthDate is "YYYY-MM-DD".
+export interface CreateContactRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone: string;
+  birthDate: string;
+  categoryId: number;
+  subcategoryId: number | null;
+  customSubcategory: string | null;
+}
+
+// Mirrors SubcategoryResponseDto.
+export interface SubcategoryResponse {
+  id: number;
+  name: string;
+}
+
+// Mirrors CategoryResponseDto. allowsCustomSubcategory tells the client to offer a
+// free-text field instead of the dictionary list.
+export interface CategoryResponse {
+  id: number;
+  name: string;
+  allowsCustomSubcategory: boolean;
+  subcategories: SubcategoryResponse[];
+}

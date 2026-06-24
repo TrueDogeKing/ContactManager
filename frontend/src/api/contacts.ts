@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { ContactResponse } from './types';
+import type { ContactResponse, CreateContactRequest } from './types';
 
 // Public read endpoints for contacts.
 export async function getContacts(): Promise<ContactResponse[]> {
@@ -13,4 +13,10 @@ export async function getContacts(): Promise<ContactResponse[]> {
 
 export function getContact(id: string): Promise<ContactResponse> {
   return api.get<ContactResponse>(`/contacts/${id}`).then((response) => response.data);
+}
+
+// Creates a contact. Requires authentication. Returns the created contact.
+export async function createContact(request: CreateContactRequest): Promise<ContactResponse> {
+  const { data } = await api.post<ContactResponse>('/contacts', request);
+  return data;
 }

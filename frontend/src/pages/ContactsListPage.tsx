@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getContacts } from "../api/contacts";
+import { useAuth } from "../auth/AuthContext";
 import type { ContactResponse } from "../api/types";
 
 // Public page listing all contacts.
 export default function ContactsListPage() {
+  const { isAuthenticated } = useAuth();
   const [contacts, setContacts] = useState<ContactResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,14 @@ export default function ContactsListPage() {
 
   return (
     <main className="page">
-      <h1>Contacts</h1>
+      <div className="page-header">
+        <h1>Contacts</h1>
+        {isAuthenticated && (
+          <Link to="/contacts/new" className="button-link">
+            Add contact
+          </Link>
+        )}
+      </div>
 
       {contacts.length === 0 ? (
         <p>No contacts available.</p>
