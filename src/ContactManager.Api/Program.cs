@@ -96,3 +96,6 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+/// Exposed so the integration test project can target it with WebApplicationFactory<Program>.
+public partial class Program;

@@ -10,6 +10,7 @@
     "frontend": "cd frontend && vp dev",
     "build": "dotnet build ContactManager.slnx -c Release && (cd frontend && vp build)",
     "test": "dotnet test ContactManager.slnx",
-    "test:unit": "dotnet test tests/ContactManager.UnitTests/ContactManager.UnitTests.csproj"
+    "test:unit": "dotnet test tests/ContactManager.UnitTests/ContactManager.UnitTests.csproj",
+    "test:integration": "dotnet test tests/ContactManager.IntegrationTests/ContactManager.IntegrationTests.csproj"
   }
 }
