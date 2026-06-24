@@ -63,7 +63,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Automatyczne zastosowanie migracji (np. przy starcie kontenera) – sterowane configiem.
+// Automated migration on container start.
 if (app.Configuration.GetValue<bool>("Database:MigrateAutomatically"))
 {
     using var scope = app.Services.CreateScope();

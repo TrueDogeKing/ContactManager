@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getContacts } from '../api/contacts';
-import type { ContactResponse } from '../api/types';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getContacts } from "../api/contacts";
+import type { ContactResponse } from "../api/types";
 
 // Public page listing all contacts.
 export default function ContactsListPage() {
@@ -16,7 +16,7 @@ export default function ContactsListPage() {
         if (active) setContacts(data);
       })
       .catch(() => {
-        if (active) setError('Nie udało się pobrać kontaktów.');
+        if (active) setError("Failed to fetch contacts.");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -26,24 +26,24 @@ export default function ContactsListPage() {
     };
   }, []);
 
-  if (loading) return <p>Ładowanie kontaktów…</p>;
+  if (loading) return <p>Loading contacts…</p>;
   if (error) return <p role="alert">{error}</p>;
 
   return (
     <main className="page">
-      <h1>Kontakty</h1>
+      <h1>Contacts</h1>
 
       {contacts.length === 0 ? (
-        <p>Brak kontaktów.</p>
+        <p>No contacts available.</p>
       ) : (
         <table className="contacts-table">
           <thead>
             <tr>
-              <th>Imię i nazwisko</th>
-              <th>E-mail</th>
-              <th>Telefon</th>
-              <th>Kategoria</th>
-              <th>Podkategoria</th>
+              <th>First and Last Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Category</th>
+              <th>Subcategory</th>
             </tr>
           </thead>
           <tbody>
@@ -57,7 +57,9 @@ export default function ContactsListPage() {
                 <td>{contact.email}</td>
                 <td>{contact.phone}</td>
                 <td>{contact.categoryName}</td>
-                <td>{contact.subcategoryName ?? contact.customSubcategory ?? '—'}</td>
+                <td>
+                  {contact.subcategoryName ?? contact.customSubcategory ?? "—"}
+                </td>
               </tr>
             ))}
           </tbody>

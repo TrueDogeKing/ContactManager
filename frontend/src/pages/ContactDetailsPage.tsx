@@ -8,40 +8,45 @@ import type { ContactResponse } from '../api/types';
 export default function ContactDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const [contact, setContact] = useState<ContactResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Tracks which id the current contact/error belongs to; loading is derived from it,
+  // so we never call setState synchronously inside the effect when id changes.
+  const [loadedId, setLoadedId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!id) return;
     let active = true;
-    setLoading(true);
     getContact(id)
       .then((data) => {
-        if (active) setContact(data);
+        if (!active) return;
+        setContact(data);
+        setError(null);
       })
       .catch((err: unknown) => {
         if (!active) return;
         setError(
           isAxiosError(err) && err.response?.status === 404
-            ? 'Nie znaleziono kontaktu.'
-            : 'Nie udało się pobrać kontaktu.',
+            ? 'Contact not found.'
+            : 'Failed to fetch contact.',
         );
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) setLoadedId(id);
       });
     return () => {
       active = false;
     };
   }, [id]);
 
-  if (loading) return <p>Ładowanie kontaktu…</p>;
+  const loading = loadedId !== id;
+
+  if (loading) return <p>Loading contact…</p>;
   if (error) {
     return (
       <main className="page">
         <p role="alert">{error}</p>
         <p>
-          <Link to="/">← Powrót do listy</Link>
+          <Link to="/">← Back to list</Link>
         </p>
       </main>
     );
@@ -53,7 +58,7 @@ export default function ContactDetailsPage() {
   return (
     <main className="page">
       <p>
-        <Link to="/">← Powrót do listy</Link>
+        <Link to="/">← Back to list</Link>
       </p>
 
       <h1>
@@ -61,19 +66,19 @@ export default function ContactDetailsPage() {
       </h1>
 
       <dl className="details">
-        <dt>E-mail</dt>
+        <dt>Email</dt>
         <dd>{contact.email}</dd>
 
-        <dt>Telefon</dt>
+        <dt>Phone</dt>
         <dd>{contact.phone}</dd>
 
-        <dt>Data urodzenia</dt>
+        <dt>Date of birth</dt>
         <dd>{contact.birthDate}</dd>
 
-        <dt>Kategoria</dt>
+        <dt>Category</dt>
         <dd>{contact.categoryName}</dd>
 
-        <dt>Podkategoria</dt>
+        <dt>Subcategory</dt>
         <dd>{subcategory}</dd>
       </dl>
     </main>

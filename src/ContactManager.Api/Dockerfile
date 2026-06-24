@@ -1,5 +1,3 @@
-# Multi-stage build dla ContactManager.Api.
-# Kontekst budowania: katalog główny repozytorium (patrz docker/docker-compose.dev.yml).
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 
 ARG BUILD_CONFIGURATION=Release

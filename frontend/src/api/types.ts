@@ -1,5 +1,10 @@
 // Shared API response/request shapes mirroring the backend DTOs.
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface LoginResponse {
   token: string;
   expiresAtUtc: string;
