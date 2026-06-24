@@ -21,7 +21,7 @@ public static class DataSeeder
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        var email = configuration["Admin:Email"] ?? "admin@contactmanager.local";
+        var email = configuration["Admin:Email"] ?? "admin@admin";
         var password = configuration["Admin:Password"] ?? "Admin123!";
         var firstName = configuration["Admin:FirstName"] ?? "Admin";
         var lastName = configuration["Admin:LastName"] ?? "Administrator";

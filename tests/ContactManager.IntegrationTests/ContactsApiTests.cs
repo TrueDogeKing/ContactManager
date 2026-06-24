@@ -17,7 +17,7 @@ public class ContactsApiTests : IntegrationTestBase
         int? subcategoryId = null,
         string? customSubcategory = null,
         string? email = null) =>
-        new("Test", "User", email ?? UniqueEmail(), "password123", "+48123456789",
+        new("Test", "User", email ?? UniqueEmail(), "Password123!", "+48123456789",
             new DateOnly(1990, 1, 1), categoryId, subcategoryId, customSubcategory);
 
     // ----- reads (public) -----

@@ -16,7 +16,7 @@ public class ApiCollection : ICollectionFixture<ContactManagerApiFactory>
 public abstract class IntegrationTestBase
 {
     // Seeded by DataSeeder (admin from appsettings "Admin" section).
-    protected const string AdminEmail = "admin@contactmanager.local";
+    protected const string AdminEmail = "admin@admin";
     protected const string AdminPassword = "Admin123!";
 
     protected ContactManagerApiFactory Factory { get; }

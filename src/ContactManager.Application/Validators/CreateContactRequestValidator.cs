@@ -20,9 +20,7 @@ public class CreateContactRequestValidator : AbstractValidator<CreateContactRequ
             .EmailAddress().WithMessage("Invalid email address.")
             .MaximumLength(256).WithMessage("Email address must not exceed 256 characters.");
 
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters long.");
+        RuleFor(x => x.Password).ValidPassword();
 
         RuleFor(x => x.Phone)
             .NotEmpty().WithMessage("Phone number is required.")

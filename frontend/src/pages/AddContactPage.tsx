@@ -140,8 +140,12 @@ export default function AddContactPage() {
             onChange={(e) => setField('password', e.target.value)}
             required
             minLength={8}
+            // Mirrors the backend policy: min 8 chars, one uppercase letter, one special character.
+            pattern="(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}"
+            title="At least 8 characters, including one uppercase letter and one special character."
             autoComplete="new-password"
           />
+          <small>At least 8 characters, including one uppercase letter and one special character.</small>
         </label>
 
         <label>

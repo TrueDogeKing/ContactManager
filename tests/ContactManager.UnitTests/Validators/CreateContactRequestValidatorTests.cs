@@ -9,7 +9,7 @@ public class CreateContactRequestValidatorTests
     private readonly CreateContactRequestValidator _validator = new();
 
     private static CreateContactRequestDto Valid() =>
-        new("Jan", "Kowalski", "jan@example.com", "password123", "+48123456789",
+        new("Jan", "Kowalski", "jan@example.com", "Password123!", "+48123456789",
             new DateOnly(1990, 1, 1), 1, null, null);
 
     [Fact]
@@ -57,9 +57,11 @@ public class CreateContactRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("short7")]
-    public void Password_TooShortOrEmpty_Fails(string password)
+    [InlineData("")]              // empty
+    [InlineData("Short1!")]       // too short (7 chars)
+    [InlineData("password123!")]  // no uppercase letter
+    [InlineData("Password1234")]  // no special character
+    public void Password_DoesNotMeetComplexity_Fails(string password)
     {
         var result = _validator.TestValidate(Valid() with { Password = password });
 
