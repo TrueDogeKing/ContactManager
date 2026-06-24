@@ -42,6 +42,20 @@ export interface CreateContactRequest {
   customSubcategory: string | null;
 }
 
+// Mirrors UpdateContactRequestDto. Password is not changed here. RowVersion is the
+// optimistic-concurrency token read with the contact (a stale value yields a 409).
+export interface UpdateContactRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  birthDate: string;
+  categoryId: number;
+  subcategoryId: number | null;
+  customSubcategory: string | null;
+  rowVersion: number;
+}
+
 // Mirrors SubcategoryResponseDto.
 export interface SubcategoryResponse {
   id: number;

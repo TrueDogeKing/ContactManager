@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { ContactResponse, CreateContactRequest } from './types';
+import type { ContactResponse, CreateContactRequest, UpdateContactRequest } from './types';
 
 // Public read endpoints for contacts.
 export async function getContacts(): Promise<ContactResponse[]> {
@@ -19,4 +19,10 @@ export function getContact(id: string): Promise<ContactResponse> {
 export async function createContact(request: CreateContactRequest): Promise<ContactResponse> {
   const { data } = await api.post<ContactResponse>('/contacts', request);
   return data;
+}
+
+// Updates a contact (optimistic concurrency via rowVersion). Requires authentication.
+// A stale rowVersion results in a 409 Conflict. Returns nothing (204 No Content).
+export async function updateContact(id: string, request: UpdateContactRequest): Promise<void> {
+  await api.put(`/contacts/${id}`, request);
 }

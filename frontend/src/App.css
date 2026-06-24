@@ -97,3 +97,14 @@
 .button-link:hover {
   background: #1d4ed8;
 }
+
+.conflict {
+  border: 1px solid #f59e0b;
+  background: #fffbeb;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+}
+
+.conflict p {
+  margin: 0 0 0.5rem;
+}

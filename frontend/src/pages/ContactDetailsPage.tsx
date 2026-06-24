@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { getContact } from '../api/contacts';
+import { useAuth } from '../auth/AuthContext';
 import type { ContactResponse } from '../api/types';
 
 // Public page showing a single contact's details.
 export default function ContactDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const { isAuthenticated } = useAuth();
   const [contact, setContact] = useState<ContactResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Tracks which id the current contact/error belongs to; loading is derived from it,
@@ -61,9 +63,16 @@ export default function ContactDetailsPage() {
         <Link to="/">← Back to list</Link>
       </p>
 
-      <h1>
-        {contact.firstName} {contact.lastName}
-      </h1>
+      <div className="page-header">
+        <h1>
+          {contact.firstName} {contact.lastName}
+        </h1>
+        {isAuthenticated && (
+          <Link to={`/contacts/${contact.id}/edit`} className="button-link">
+            Edit
+          </Link>
+        )}
+      </div>
 
       <dl className="details">
         <dt>Email</dt>
