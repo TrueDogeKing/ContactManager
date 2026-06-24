@@ -1,5 +1,6 @@
 using System.Text;
 using ContactManager.Api.Errors;
+using ContactManager.Api.OpenApi;
 using ContactManager.Application;
 using ContactManager.Infrastructure;
 using ContactManager.Infrastructure.Auth;
@@ -8,11 +9,12 @@ using ContactManager.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 builder.Services.AddHealthChecks();
 
 // Global exception handling with ProblemDetails responses.
@@ -69,6 +71,7 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseAuthentication();
