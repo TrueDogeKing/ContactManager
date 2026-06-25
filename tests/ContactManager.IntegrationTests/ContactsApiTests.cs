@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using ContactManager.Application.DTOs.Auth;
 using ContactManager.Application.DTOs.Contacts;
 
 namespace ContactManager.IntegrationTests;
@@ -102,6 +103,24 @@ public class ContactsApiTests : IntegrationTestBase
         var response = await client.PostAsJsonAsync("/api/contacts", request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_ProvisionsLogin_NewContactCanLogInWithItsOwnCredentials()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+        var email = UniqueEmail();
+        var request = NewContactRequest(categoryId: 3, email: email); // password "Password123!"
+
+        var createResponse = await client.PostAsJsonAsync("/api/contacts", request);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        // The contact's email + password should now work as login credentials.
+        var anon = CreateClient();
+        var loginResponse = await anon.PostAsJsonAsync(
+            "/api/auth/login", new LoginRequestDto(email, "Password123!"));
+
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
     }
 
     [Fact]

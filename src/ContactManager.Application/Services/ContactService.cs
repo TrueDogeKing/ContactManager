@@ -8,20 +8,27 @@ namespace ContactManager.Application.Services;
 
 /// Implementation of IContactService: orchestrates the contact repository, hashes passwords
 /// and maps between entities and DTOs.
+///
+/// Creating a contact also provisions a matching login account (User) with the same email and
+/// password, so the contact can sign in afterwards. Note: changing a contact's email/password or
+/// deleting a contact does not currently propagate to that login account.
 public class ContactService : IContactService
 {
     private readonly IContactRepository _contacts;
     private readonly ICategoryRepository _categories;
+    private readonly IUserRepository _users;
     private readonly IPasswordHasher _passwordHasher;
 
     /// Creates service with dependencies.
     public ContactService(
         IContactRepository contacts,
         ICategoryRepository categories,
+        IUserRepository users,
         IPasswordHasher passwordHasher)
     {
         _contacts = contacts;
         _categories = categories;
+        _users = users;
         _passwordHasher = passwordHasher;
     }
 
@@ -47,8 +54,18 @@ public class ContactService : IContactService
             throw new EmailConflictException($"A contact with email '{request.Email}' already exists.");
         }
 
+        // The email becomes a login too, so it must also be free in the Users table.
+        var existingUser = await _users.GetByEmailAsync(request.Email, cancellationToken);
+        if (existingUser is not null)
+        {
+            throw new EmailConflictException($"A user with email '{request.Email}' already exists.");
+        }
+
         var customSubcategory = await ValidateCategorySelectionAsync(
             request.CategoryId, request.SubcategoryId, request.CustomSubcategory, cancellationToken);
+
+        var passwordHash = _passwordHasher.Hash(request.Password);
+        var createdAt = DateTime.UtcNow;
 
         var contact = new Contact
         {
@@ -56,16 +73,28 @@ public class ContactService : IContactService
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email,
-            PasswordHash = _passwordHasher.Hash(request.Password),
+            PasswordHash = passwordHash,
             Phone = request.Phone,
             BirthDate = request.BirthDate,
             CategoryId = request.CategoryId,
             SubcategoryId = request.SubcategoryId,
             CustomSubcategory = customSubcategory,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = createdAt
         };
 
-        await _contacts.AddAsync(contact, cancellationToken);
+        // Matching login account so the contact can sign in with its own email + password
+        // (the password captured on the contact form).
+        var loginUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PasswordHash = passwordHash,
+            CreatedAt = createdAt
+        };
+
+        await _contacts.AddAsync(contact, loginUser, cancellationToken);
 
         // Reload so navigation properties (Category/Subcategory names) are populated for the response.
         var created = await _contacts.GetByIdAsync(contact.Id, cancellationToken);

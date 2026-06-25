@@ -14,12 +14,13 @@ public class ContactServiceTests
 {
     private readonly IContactRepository _contacts = Substitute.For<IContactRepository>();
     private readonly ICategoryRepository _categories = Substitute.For<ICategoryRepository>();
+    private readonly IUserRepository _users = Substitute.For<IUserRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly ContactService _sut;
 
     public ContactServiceTests()
     {
-        _sut = new ContactService(_contacts, _categories, _passwordHasher);
+        _sut = new ContactService(_contacts, _categories, _users, _passwordHasher);
         // Deterministic, inspectable hash so tests can assert the password was hashed.
         _passwordHasher.Hash(Arg.Any<string>()).Returns(ci => "HASHED:" + ci.Arg<string>());
     }
@@ -45,7 +46,7 @@ public class ContactServiceTests
     private Func<Contact> CaptureAddedContact()
     {
         Contact? added = null;
-        _contacts.When(c => c.AddAsync(Arg.Any<Contact>(), Arg.Any<CancellationToken>()))
+        _contacts.When(c => c.AddAsync(Arg.Any<Contact>(), Arg.Any<User>(), Arg.Any<CancellationToken>()))
             .Do(ci => added = ci.Arg<Contact>());
         _contacts.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(_ => added);
@@ -208,7 +209,36 @@ public class ContactServiceTests
 
         await Assert.ThrowsAsync<EmailConflictException>(() => _sut.CreateAsync(CreateRequest()));
 
-        await _contacts.DidNotReceive().AddAsync(Arg.Any<Contact>(), Arg.Any<CancellationToken>());
+        await _contacts.DidNotReceive().AddAsync(Arg.Any<Contact>(), Arg.Any<User>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateAsync_EmailUsedByExistingUser_ThrowsAndDoesNotPersist()
+    {
+        _users.GetByEmailAsync("jan@example.com", Arg.Any<CancellationToken>())
+            .Returns(new User { Id = Guid.NewGuid(), Email = "jan@example.com", PasswordHash = "x" });
+
+        await Assert.ThrowsAsync<EmailConflictException>(() => _sut.CreateAsync(CreateRequest()));
+
+        await _contacts.DidNotReceive().AddAsync(Arg.Any<Contact>(), Arg.Any<User>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CreateAsync_ProvisionsLoginUserWithSameEmailAndHash()
+    {
+        StubCategory(Category(3, "Inny", allowsCustom: true));
+        var added = CaptureAddedContact();
+        User? loginUser = null;
+        _contacts.When(c => c.AddAsync(Arg.Any<Contact>(), Arg.Any<User>(), Arg.Any<CancellationToken>()))
+            .Do(ci => loginUser = ci.Arg<User>());
+
+        await _sut.CreateAsync(CreateRequest(categoryId: 3, email: "new@example.com", password: "Password123!"));
+
+        Assert.NotNull(loginUser);
+        Assert.Equal("new@example.com", loginUser!.Email);
+        Assert.Equal("HASHED:Password123!", loginUser.PasswordHash);
+        // The login shares the contact's password hash exactly.
+        Assert.Equal(added().PasswordHash, loginUser.PasswordHash);
     }
 
     [Fact]

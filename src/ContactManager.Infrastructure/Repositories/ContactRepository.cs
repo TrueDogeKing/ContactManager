@@ -30,9 +30,11 @@ public class ContactRepository : IContactRepository
     public Task<Contact?> GetByEmailAsync(string email, CancellationToken cancellationToken = default) =>
         _db.Contacts.FirstOrDefaultAsync(c => c.Email == email, cancellationToken);
 
-    public async Task AddAsync(Contact contact, CancellationToken cancellationToken = default)
+    public async Task AddAsync(Contact contact, User loginUser, CancellationToken cancellationToken = default)
     {
         await _db.Contacts.AddAsync(contact, cancellationToken);
+        await _db.Users.AddAsync(loginUser, cancellationToken);
+        // Single SaveChanges => the contact and its login account are persisted atomically.
         await _db.SaveChangesAsync(cancellationToken);
     }
 
