@@ -1,0 +1,2 @@
+# EF Core migrations are tooling-generated — leave them untouched.
+**/Migrations/

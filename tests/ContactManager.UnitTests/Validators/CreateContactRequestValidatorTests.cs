@@ -9,8 +9,17 @@ public class CreateContactRequestValidatorTests
     private readonly CreateContactRequestValidator _validator = new();
 
     private static CreateContactRequestDto Valid() =>
-        new("Jan", "Kowalski", "jan@example.com", "Password123!", "+48123456789",
-            new DateOnly(1990, 1, 1), 1, null, null);
+        new(
+            "Jan",
+            "Kowalski",
+            "jan@example.com",
+            "Password123!",
+            "+48123456789",
+            new DateOnly(1990, 1, 1),
+            1,
+            null,
+            null
+        );
 
     [Fact]
     public void ValidRequest_PassesValidation()
@@ -57,10 +66,10 @@ public class CreateContactRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("")]              // empty
-    [InlineData("Short1!")]       // too short (7 chars)
-    [InlineData("password123!")]  // no uppercase letter
-    [InlineData("Password1234")]  // no special character
+    [InlineData("")] // empty
+    [InlineData("Short1!")] // too short (7 chars)
+    [InlineData("password123!")] // no uppercase letter
+    [InlineData("Password1234")] // no special character
     public void Password_DoesNotMeetComplexity_Fails(string password)
     {
         var result = _validator.TestValidate(Valid() with { Password = password });
@@ -97,7 +106,12 @@ public class CreateContactRequestValidatorTests
     [Fact]
     public void CustomSubcategory_TooLong_Fails()
     {
-        var result = _validator.TestValidate(Valid() with { CustomSubcategory = new string('a', 101) });
+        var result = _validator.TestValidate(
+            Valid() with
+            {
+                CustomSubcategory = new string('a', 101),
+            }
+        );
 
         result.ShouldHaveValidationErrorFor(x => x.CustomSubcategory);
     }

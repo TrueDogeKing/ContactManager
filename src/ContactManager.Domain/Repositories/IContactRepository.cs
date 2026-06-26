@@ -20,9 +20,17 @@ public interface IContactRepository
 
     /// Saves changes to a tracked contact with concurrency control. expectedRowVersion is the token
     /// the client fetched on read. Throws ConcurrencyConflictException when the contact was modified meanwhile.
-    Task UpdateAsync(Contact contact, uint expectedRowVersion, CancellationToken cancellationToken = default);
+    Task UpdateAsync(
+        Contact contact,
+        uint expectedRowVersion,
+        CancellationToken cancellationToken = default
+    );
 
     /// Removes a contact together with its login account (when present), in a single transaction,
     /// and saves changes.
-    Task DeleteAsync(Contact contact, User? loginUser, CancellationToken cancellationToken = default);
+    Task DeleteAsync(
+        Contact contact,
+        User? loginUser,
+        CancellationToken cancellationToken = default
+    );
 }

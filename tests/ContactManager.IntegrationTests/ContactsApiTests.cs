@@ -8,9 +8,8 @@ namespace ContactManager.IntegrationTests;
 
 public class ContactsApiTests : IntegrationTestBase
 {
-    public ContactsApiTests(ContactManagerApiFactory factory) : base(factory)
-    {
-    }
+    public ContactsApiTests(ContactManagerApiFactory factory)
+        : base(factory) { }
 
     private static string UniqueEmail() => $"it-{Guid.NewGuid():N}@example.com";
 
@@ -18,9 +17,19 @@ public class ContactsApiTests : IntegrationTestBase
         int categoryId = 3,
         int? subcategoryId = null,
         string? customSubcategory = null,
-        string? email = null) =>
-        new("Test", "User", email ?? UniqueEmail(), "Password123!", "+48123456789",
-            new DateOnly(1990, 1, 1), categoryId, subcategoryId, customSubcategory);
+        string? email = null
+    ) =>
+        new(
+            "Test",
+            "User",
+            email ?? UniqueEmail(),
+            "Password123!",
+            "+48123456789",
+            new DateOnly(1990, 1, 1),
+            categoryId,
+            subcategoryId,
+            customSubcategory
+        );
 
     // ----- reads (public) -----
 
@@ -75,7 +84,9 @@ public class ContactsApiTests : IntegrationTestBase
         Assert.Equal("Klient", created.SubcategoryName);
 
         // Follow the Location header / id to confirm it was persisted.
-        var fetched = await client.GetFromJsonAsync<ContactResponseDto>($"/api/contacts/{created.Id}");
+        var fetched = await client.GetFromJsonAsync<ContactResponseDto>(
+            $"/api/contacts/{created.Id}"
+        );
         Assert.NotNull(fetched);
         Assert.Equal(request.Email, fetched!.Email);
     }
@@ -119,7 +130,9 @@ public class ContactsApiTests : IntegrationTestBase
         // The contact's email + password should now work as login credentials.
         var anon = CreateClient();
         var loginResponse = await anon.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(email, "Password123!"));
+            "/api/auth/login",
+            new LoginRequestDto(email, "Password123!")
+        );
 
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
     }
@@ -153,18 +166,32 @@ public class ContactsApiTests : IntegrationTestBase
     {
         var client = await CreateAuthenticatedClientAsync();
 
-        var createResponse = await client.PostAsJsonAsync("/api/contacts", NewContactRequest(categoryId: 3));
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/contacts",
+            NewContactRequest(categoryId: 3)
+        );
         var created = await createResponse.Content.ReadFromJsonAsync<ContactResponseDto>();
 
         var firstUpdate = new UpdateContactRequestDto(
-            "Updated", "User", created!.Email, "+48123456789",
-            new DateOnly(1990, 1, 1), 3, null, null, created.RowVersion);
+            "Updated",
+            "User",
+            created!.Email,
+            "+48123456789",
+            new DateOnly(1990, 1, 1),
+            3,
+            null,
+            null,
+            created.RowVersion
+        );
 
         var firstResponse = await client.PutAsJsonAsync($"/api/contacts/{created.Id}", firstUpdate);
         Assert.Equal(HttpStatusCode.NoContent, firstResponse.StatusCode);
 
         // Re-using the original (now stale) RowVersion must be rejected.
-        var staleUpdate = firstUpdate with { FirstName = "Stale" };
+        var staleUpdate = firstUpdate with
+        {
+            FirstName = "Stale",
+        };
         var staleResponse = await client.PutAsJsonAsync($"/api/contacts/{created.Id}", staleUpdate);
 
         Assert.Equal(HttpStatusCode.Conflict, staleResponse.StatusCode);
@@ -175,8 +202,16 @@ public class ContactsApiTests : IntegrationTestBase
     {
         var client = await CreateAuthenticatedClientAsync();
         var request = new UpdateContactRequestDto(
-            "Ghost", "User", UniqueEmail(), "+48123456789",
-            new DateOnly(1990, 1, 1), 3, null, null, RowVersion: 1);
+            "Ghost",
+            "User",
+            UniqueEmail(),
+            "+48123456789",
+            new DateOnly(1990, 1, 1),
+            3,
+            null,
+            null,
+            RowVersion: 1
+        );
 
         var response = await client.PutAsJsonAsync($"/api/contacts/{Guid.NewGuid()}", request);
 
@@ -188,24 +223,39 @@ public class ContactsApiTests : IntegrationTestBase
     {
         var client = await CreateAuthenticatedClientAsync();
         var oldEmail = UniqueEmail();
-        var createResponse = await client.PostAsJsonAsync("/api/contacts", NewContactRequest(categoryId: 3, email: oldEmail));
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/contacts",
+            NewContactRequest(categoryId: 3, email: oldEmail)
+        );
         var created = await createResponse.Content.ReadFromJsonAsync<ContactResponseDto>();
 
         var newEmail = UniqueEmail();
         var update = new UpdateContactRequestDto(
-            "Test", "User", newEmail, "+48123456789",
-            new DateOnly(1990, 1, 1), 3, null, null, created!.RowVersion);
+            "Test",
+            "User",
+            newEmail,
+            "+48123456789",
+            new DateOnly(1990, 1, 1),
+            3,
+            null,
+            null,
+            created!.RowVersion
+        );
         var updateResponse = await client.PutAsJsonAsync($"/api/contacts/{created.Id}", update);
         Assert.Equal(HttpStatusCode.NoContent, updateResponse.StatusCode);
 
         var anon = CreateClient();
         // The new email logs in; the old one no longer works.
         var withNew = await anon.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(newEmail, "Password123!"));
+            "/api/auth/login",
+            new LoginRequestDto(newEmail, "Password123!")
+        );
         Assert.Equal(HttpStatusCode.OK, withNew.StatusCode);
 
         var withOld = await anon.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(oldEmail, "Password123!"));
+            "/api/auth/login",
+            new LoginRequestDto(oldEmail, "Password123!")
+        );
         Assert.Equal(HttpStatusCode.Unauthorized, withOld.StatusCode);
     }
 
@@ -215,7 +265,10 @@ public class ContactsApiTests : IntegrationTestBase
     public async Task Delete_RemovesContact_Returns204ThenGet404()
     {
         var client = await CreateAuthenticatedClientAsync();
-        var createResponse = await client.PostAsJsonAsync("/api/contacts", NewContactRequest(categoryId: 3));
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/contacts",
+            NewContactRequest(categoryId: 3)
+        );
         var created = await createResponse.Content.ReadFromJsonAsync<ContactResponseDto>();
 
         var deleteResponse = await client.DeleteAsync($"/api/contacts/{created!.Id}");
@@ -240,12 +293,17 @@ public class ContactsApiTests : IntegrationTestBase
     {
         var client = await CreateAuthenticatedClientAsync();
         var email = UniqueEmail();
-        var createResponse = await client.PostAsJsonAsync("/api/contacts", NewContactRequest(categoryId: 3, email: email));
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/contacts",
+            NewContactRequest(categoryId: 3, email: email)
+        );
         var created = await createResponse.Content.ReadFromJsonAsync<ContactResponseDto>();
 
         var anon = CreateClient();
         var loginBefore = await anon.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(email, "Password123!"));
+            "/api/auth/login",
+            new LoginRequestDto(email, "Password123!")
+        );
         Assert.Equal(HttpStatusCode.OK, loginBefore.StatusCode);
 
         var deleteResponse = await client.DeleteAsync($"/api/contacts/{created!.Id}");
@@ -253,7 +311,9 @@ public class ContactsApiTests : IntegrationTestBase
 
         // The login account is gone too.
         var loginAfter = await anon.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(email, "Password123!"));
+            "/api/auth/login",
+            new LoginRequestDto(email, "Password123!")
+        );
         Assert.Equal(HttpStatusCode.Unauthorized, loginAfter.StatusCode);
     }
 
@@ -264,23 +324,31 @@ public class ContactsApiTests : IntegrationTestBase
     {
         var admin = await CreateAuthenticatedClientAsync();
         var email = UniqueEmail();
-        var createResponse = await admin.PostAsJsonAsync("/api/contacts", NewContactRequest(categoryId: 3, email: email));
+        var createResponse = await admin.PostAsJsonAsync(
+            "/api/contacts",
+            NewContactRequest(categoryId: 3, email: email)
+        );
         var created = await createResponse.Content.ReadFromJsonAsync<ContactResponseDto>();
 
         // Sign in as the contact itself and change its own password.
         var owner = await LoginAsAsync(email, "Password123!");
         var change = await owner.PutAsJsonAsync(
             $"/api/contacts/{created!.Id}/password",
-            new ChangeContactPasswordRequestDto("NewPassword123!", created.RowVersion));
+            new ChangeContactPasswordRequestDto("NewPassword123!", created.RowVersion)
+        );
         Assert.Equal(HttpStatusCode.NoContent, change.StatusCode);
 
         var anon = CreateClient();
         var withNew = await anon.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(email, "NewPassword123!"));
+            "/api/auth/login",
+            new LoginRequestDto(email, "NewPassword123!")
+        );
         Assert.Equal(HttpStatusCode.OK, withNew.StatusCode);
 
         var withOld = await anon.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(email, "Password123!"));
+            "/api/auth/login",
+            new LoginRequestDto(email, "Password123!")
+        );
         Assert.Equal(HttpStatusCode.Unauthorized, withOld.StatusCode);
     }
 
@@ -290,12 +358,16 @@ public class ContactsApiTests : IntegrationTestBase
         // Authenticated as admin (different email than the contact).
         var admin = await CreateAuthenticatedClientAsync();
         var email = UniqueEmail();
-        var createResponse = await admin.PostAsJsonAsync("/api/contacts", NewContactRequest(categoryId: 3, email: email));
+        var createResponse = await admin.PostAsJsonAsync(
+            "/api/contacts",
+            NewContactRequest(categoryId: 3, email: email)
+        );
         var created = await createResponse.Content.ReadFromJsonAsync<ContactResponseDto>();
 
         var change = await admin.PutAsJsonAsync(
             $"/api/contacts/{created!.Id}/password",
-            new ChangeContactPasswordRequestDto("NewPassword123!", created.RowVersion));
+            new ChangeContactPasswordRequestDto("NewPassword123!", created.RowVersion)
+        );
 
         Assert.Equal(HttpStatusCode.Forbidden, change.StatusCode);
     }
@@ -304,11 +376,17 @@ public class ContactsApiTests : IntegrationTestBase
     private async Task<HttpClient> LoginAsAsync(string email, string password)
     {
         var client = CreateClient();
-        var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequestDto(email, password));
+        var response = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginRequestDto(email, password)
+        );
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", body!.Token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            body!.Token
+        );
         return client;
     }
 }

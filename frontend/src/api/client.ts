@@ -1,10 +1,10 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { clearAccessToken, getAccessToken, setAccessToken } from './tokenStore';
-import type { LoginResponse } from './types';
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { clearAccessToken, getAccessToken, setAccessToken } from "./tokenStore";
+import type { LoginResponse } from "./types";
 
 // All requests go through the Vite dev proxy (/api -> backend), so cookies stay same-origin.
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: "/api",
   withCredentials: true,
 });
 
@@ -23,7 +23,7 @@ let refreshPromise: Promise<string | null> | null = null;
 
 export function refreshAccessToken(): Promise<string | null> {
   refreshPromise ??= axios
-    .post<LoginResponse>('/api/auth/refresh', null, { withCredentials: true })
+    .post<LoginResponse>("/api/auth/refresh", null, { withCredentials: true })
     .then((response) => {
       setAccessToken(response.data.token);
       return response.data.token;
@@ -47,7 +47,7 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as RetriableConfig | undefined;
     const isAuthCall =
-      original?.url?.includes('/auth/login') || original?.url?.includes('/auth/refresh');
+      original?.url?.includes("/auth/login") || original?.url?.includes("/auth/refresh");
 
     if (error.response?.status === 401 && original && !original._retry && !isAuthCall) {
       original._retry = true;

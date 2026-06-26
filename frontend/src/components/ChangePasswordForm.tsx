@@ -12,11 +12,7 @@ interface Props {
 
 // Lets the signed-in owner change their own contact's password.
 // Mirrors the backend complexity rules; the API enforces the same-email ownership check.
-export default function ChangePasswordForm({
-  contactId,
-  rowVersion,
-  onChanged,
-}: Props) {
+export default function ChangePasswordForm({ contactId, rowVersion, onChanged }: Props) {
   const [open, setOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -77,8 +73,7 @@ export default function ChangePasswordForm({
           autoComplete="new-password"
         />
         <small>
-          At least 8 characters, including one uppercase letter and one special
-          character.
+          At least 8 characters, including one uppercase letter and one special character.
         </small>
       </label>
 

@@ -1,4 +1,4 @@
-import type { CategoryResponse } from '../api/types';
+import type { CategoryResponse } from "../api/types";
 
 interface Props {
   categories: CategoryResponse[];

@@ -24,7 +24,8 @@ public class ContactService : IContactService
         IContactRepository contacts,
         ICategoryRepository categories,
         IUserRepository users,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher
+    )
     {
         _contacts = contacts;
         _categories = categories;
@@ -32,13 +33,18 @@ public class ContactService : IContactService
         _passwordHasher = passwordHasher;
     }
 
-    public async Task<IReadOnlyList<ContactResponseDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ContactResponseDto>> GetAllAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         var contacts = await _contacts.GetAllAsync(cancellationToken);
         return contacts.Select(ToResponse).ToList();
     }
 
-    public async Task<ContactResponseDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ContactResponseDto?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    )
     {
         var contact = await _contacts.GetByIdAsync(id, cancellationToken);
         return contact is null ? null : ToResponse(contact);
@@ -46,23 +52,32 @@ public class ContactService : IContactService
 
     public async Task<ContactResponseDto> CreateAsync(
         CreateContactRequestDto request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var existing = await _contacts.GetByEmailAsync(request.Email, cancellationToken);
         if (existing is not null)
         {
-            throw new EmailConflictException($"A contact with email '{request.Email}' already exists.");
+            throw new EmailConflictException(
+                $"A contact with email '{request.Email}' already exists."
+            );
         }
 
         // The email becomes a login too, so it must also be free in the Users table.
         var existingUser = await _users.GetByEmailAsync(request.Email, cancellationToken);
         if (existingUser is not null)
         {
-            throw new EmailConflictException($"A user with email '{request.Email}' already exists.");
+            throw new EmailConflictException(
+                $"A user with email '{request.Email}' already exists."
+            );
         }
 
         var customSubcategory = await ValidateCategorySelectionAsync(
-            request.CategoryId, request.SubcategoryId, request.CustomSubcategory, cancellationToken);
+            request.CategoryId,
+            request.SubcategoryId,
+            request.CustomSubcategory,
+            cancellationToken
+        );
 
         var passwordHash = _passwordHasher.Hash(request.Password);
         var createdAt = DateTime.UtcNow;
@@ -79,7 +94,7 @@ public class ContactService : IContactService
             CategoryId = request.CategoryId,
             SubcategoryId = request.SubcategoryId,
             CustomSubcategory = customSubcategory,
-            CreatedAt = createdAt
+            CreatedAt = createdAt,
         };
 
         // Matching login account so the contact can sign in with its own email + password
@@ -91,7 +106,7 @@ public class ContactService : IContactService
             FirstName = request.FirstName,
             LastName = request.LastName,
             PasswordHash = passwordHash,
-            CreatedAt = createdAt
+            CreatedAt = createdAt,
         };
 
         await _contacts.AddAsync(contact, loginUser, cancellationToken);
@@ -104,7 +119,8 @@ public class ContactService : IContactService
     public async Task<ContactResponseDto?> UpdateAsync(
         Guid id,
         UpdateContactRequestDto request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var contact = await _contacts.GetByIdAsync(id, cancellationToken);
         if (contact is null)
@@ -113,26 +129,41 @@ public class ContactService : IContactService
         }
 
         var oldEmail = contact.Email;
-        var emailChanged = !string.Equals(oldEmail, request.Email, StringComparison.OrdinalIgnoreCase);
+        var emailChanged = !string.Equals(
+            oldEmail,
+            request.Email,
+            StringComparison.OrdinalIgnoreCase
+        );
 
         if (emailChanged)
         {
             // The new email must be free among both contacts and login accounts.
-            var contactWithEmail = await _contacts.GetByEmailAsync(request.Email, cancellationToken);
+            var contactWithEmail = await _contacts.GetByEmailAsync(
+                request.Email,
+                cancellationToken
+            );
             if (contactWithEmail is not null && contactWithEmail.Id != id)
             {
-                throw new EmailConflictException($"A contact with email '{request.Email}' already exists.");
+                throw new EmailConflictException(
+                    $"A contact with email '{request.Email}' already exists."
+                );
             }
 
             var userWithEmail = await _users.GetByEmailAsync(request.Email, cancellationToken);
             if (userWithEmail is not null)
             {
-                throw new EmailConflictException($"A user with email '{request.Email}' already exists.");
+                throw new EmailConflictException(
+                    $"A user with email '{request.Email}' already exists."
+                );
             }
         }
 
         var customSubcategory = await ValidateCategorySelectionAsync(
-            request.CategoryId, request.SubcategoryId, request.CustomSubcategory, cancellationToken);
+            request.CategoryId,
+            request.SubcategoryId,
+            request.CustomSubcategory,
+            cancellationToken
+        );
 
         contact.FirstName = request.FirstName;
         contact.LastName = request.LastName;
@@ -179,7 +210,8 @@ public class ContactService : IContactService
         Guid id,
         ChangeContactPasswordRequestDto request,
         string callerEmail,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var contact = await _contacts.GetByIdAsync(id, cancellationToken);
         if (contact is null)
@@ -190,7 +222,9 @@ public class ContactService : IContactService
         // Only the signed-in owner (same email) may change a contact's password.
         if (!string.Equals(contact.Email, callerEmail, StringComparison.OrdinalIgnoreCase))
         {
-            throw new ForbiddenActionException("You can only change the password of your own account.");
+            throw new ForbiddenActionException(
+                "You can only change the password of your own account."
+            );
         }
 
         var passwordHash = _passwordHasher.Hash(request.NewPassword);
@@ -217,15 +251,21 @@ public class ContactService : IContactService
         int categoryId,
         int? subcategoryId,
         string? customSubcategory,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var category = await _categories.GetByIdWithSubcategoriesAsync(categoryId, cancellationToken);
+        var category = await _categories.GetByIdWithSubcategoriesAsync(
+            categoryId,
+            cancellationToken
+        );
         if (category is null)
         {
             throw new BusinessRuleViolationException($"Category {categoryId} does not exist.");
         }
 
-        var normalizedCustom = string.IsNullOrWhiteSpace(customSubcategory) ? null : customSubcategory.Trim();
+        var normalizedCustom = string.IsNullOrWhiteSpace(customSubcategory)
+            ? null
+            : customSubcategory.Trim();
         var hasDictionarySubcategories = category.Subcategories.Count > 0;
 
         if (hasDictionarySubcategories)
@@ -233,19 +273,22 @@ public class ContactService : IContactService
             if (subcategoryId is null)
             {
                 throw new BusinessRuleViolationException(
-                    $"Category '{category.Name}' requires a subcategory from the dictionary.");
+                    $"Category '{category.Name}' requires a subcategory from the dictionary."
+                );
             }
 
             if (category.Subcategories.All(s => s.Id != subcategoryId))
             {
                 throw new BusinessRuleViolationException(
-                    $"Subcategory {subcategoryId} does not belong to category '{category.Name}'.");
+                    $"Subcategory {subcategoryId} does not belong to category '{category.Name}'."
+                );
             }
 
             if (normalizedCustom is not null)
             {
                 throw new BusinessRuleViolationException(
-                    $"Category '{category.Name}' does not allow a custom subcategory.");
+                    $"Category '{category.Name}' does not allow a custom subcategory."
+                );
             }
 
             return null;
@@ -255,7 +298,8 @@ public class ContactService : IContactService
         if (subcategoryId is not null)
         {
             throw new BusinessRuleViolationException(
-                $"Category '{category.Name}' does not have dictionary subcategories.");
+                $"Category '{category.Name}' does not have dictionary subcategories."
+            );
         }
 
         if (category.AllowsCustomSubcategory)
@@ -268,7 +312,8 @@ public class ContactService : IContactService
         if (normalizedCustom is not null)
         {
             throw new BusinessRuleViolationException(
-                $"Category '{category.Name}' does not allow a subcategory.");
+                $"Category '{category.Name}' does not allow a subcategory."
+            );
         }
 
         return null;
@@ -290,5 +335,6 @@ public class ContactService : IContactService
             contact.CustomSubcategory,
             contact.CreatedAt,
             contact.UpdatedAt,
-            contact.RowVersion);
+            contact.RowVersion
+        );
 }

@@ -66,9 +66,7 @@ export default function ContactsListPage() {
                 <td>{contact.email}</td>
                 <td>{contact.phone}</td>
                 <td>{contact.categoryName}</td>
-                <td>
-                  {contact.subcategoryName ?? contact.customSubcategory ?? "—"}
-                </td>
+                <td>{contact.subcategoryName ?? contact.customSubcategory ?? "—"}</td>
               </tr>
             ))}
           </tbody>

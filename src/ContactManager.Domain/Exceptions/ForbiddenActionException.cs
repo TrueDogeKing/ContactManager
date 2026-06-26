@@ -4,7 +4,6 @@ namespace ContactManager.Domain.Exceptions;
 /// (e.g. changing another account's password). Mapped to HTTP 403.
 public class ForbiddenActionException : Exception
 {
-    public ForbiddenActionException(string message) : base(message)
-    {
-    }
+    public ForbiddenActionException(string message)
+        : base(message) { }
 }

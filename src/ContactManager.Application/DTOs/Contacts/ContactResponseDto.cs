@@ -15,4 +15,5 @@ public record ContactResponseDto(
     string? CustomSubcategory,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    uint RowVersion);
+    uint RowVersion
+);

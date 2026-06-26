@@ -13,49 +13,40 @@ public class ContactConfiguration : IEntityTypeConfiguration<Contact>
 
         builder.HasKey(c => c.Id);
 
-        builder.Property(c => c.FirstName)
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.Property(c => c.FirstName).IsRequired().HasMaxLength(100);
 
-        builder.Property(c => c.LastName)
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.Property(c => c.LastName).IsRequired().HasMaxLength(100);
 
-        builder.Property(c => c.Email)
-            .IsRequired()
-            .HasMaxLength(256);
+        builder.Property(c => c.Email).IsRequired().HasMaxLength(256);
 
-        builder.HasIndex(c => c.Email)
-            .IsUnique();
+        builder.HasIndex(c => c.Email).IsUnique();
 
-        builder.Property(c => c.PasswordHash)
-            .IsRequired();
+        builder.Property(c => c.PasswordHash).IsRequired();
 
-        builder.Property(c => c.Phone)
-            .IsRequired()
-            .HasMaxLength(32);
+        builder.Property(c => c.Phone).IsRequired().HasMaxLength(32);
 
-        builder.Property(c => c.CustomSubcategory)
-            .HasMaxLength(100);
+        builder.Property(c => c.CustomSubcategory).HasMaxLength(100);
 
-        builder.Property(c => c.CreatedAt)
-            .IsRequired();
+        builder.Property(c => c.CreatedAt).IsRequired();
 
         // Relationship: Contact -> Category (required).
         // Prevents cascade deletion of dictionary/reference data.
-        builder.HasOne(c => c.Category)
+        builder
+            .HasOne(c => c.Category)
             .WithMany(cat => cat.Contacts)
             .HasForeignKey(c => c.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Relationship: Contact -> Subcategory (optional).
-        builder.HasOne(c => c.Subcategory)
+        builder
+            .HasOne(c => c.Subcategory)
             .WithMany(s => s.Contacts)
             .HasForeignKey(c => c.SubcategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Optimistic concurrency based on PostgreSQL's system column "xmin".
-        builder.Property(c => c.RowVersion)
+        builder
+            .Property(c => c.RowVersion)
             .HasColumnName("xmin")
             .HasColumnType("xid")
             .ValueGeneratedOnAddOrUpdate()

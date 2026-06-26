@@ -12,7 +12,8 @@ public class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
     public Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var scheme = new OpenApiSecurityScheme
         {
@@ -20,7 +21,7 @@ public class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
             Scheme = "bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
-            Description = "Paste the JWT access token (without the 'Bearer' prefix)."
+            Description = "Paste the JWT access token (without the 'Bearer' prefix).",
         };
 
         document.Components ??= new OpenApiComponents();
@@ -28,10 +29,13 @@ public class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
         document.Components.SecuritySchemes[SchemeName] = scheme;
 
         document.Security ??= new List<OpenApiSecurityRequirement>();
-        document.Security.Add(new OpenApiSecurityRequirement
-        {
-            [new OpenApiSecuritySchemeReference(SchemeName, document, null)] = new List<string>()
-        });
+        document.Security.Add(
+            new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference(SchemeName, document, null)] =
+                    new List<string>(),
+            }
+        );
 
         return Task.CompletedTask;
     }

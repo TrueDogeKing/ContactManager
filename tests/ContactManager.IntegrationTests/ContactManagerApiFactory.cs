@@ -16,8 +16,9 @@ namespace ContactManager.IntegrationTests;
 /// and the database is seeded with the same DataSeeder the application uses on startup.
 public class ContactManagerApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgres:16-alpine")
-        .Build();
+    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder(
+        "postgres:16-alpine"
+    ).Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -32,7 +33,8 @@ public class ContactManagerApiFactory : WebApplicationFactory<Program>, IAsyncLi
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<AppDbContext>();
             services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(_database.GetConnectionString()));
+                options.UseNpgsql(_database.GetConnectionString())
+            );
         });
     }
 

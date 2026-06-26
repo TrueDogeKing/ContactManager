@@ -3,7 +3,8 @@ using FluentValidation;
 
 namespace ContactManager.Application.Validators;
 
-public class ChangeContactPasswordRequestValidator : AbstractValidator<ChangeContactPasswordRequestDto>
+public class ChangeContactPasswordRequestValidator
+    : AbstractValidator<ChangeContactPasswordRequestDto>
 {
     public ChangeContactPasswordRequestValidator()
     {

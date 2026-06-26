@@ -4,12 +4,9 @@ namespace ContactManager.Domain.Exceptions;
 /// process between read and write. Mapped to HTTP 409.
 public class ConcurrencyConflictException : Exception
 {
-    public ConcurrencyConflictException(string message) : base(message)
-    {
-    }
+    public ConcurrencyConflictException(string message)
+        : base(message) { }
 
     public ConcurrencyConflictException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 }

@@ -20,7 +20,8 @@ public class AuthService : IAuthService
         IUserRepository users,
         IRefreshTokenRepository refreshTokens,
         IPasswordHasher passwordHasher,
-        ITokenService tokenService)
+        ITokenService tokenService
+    )
     {
         _users = users;
         _refreshTokens = refreshTokens;
@@ -30,7 +31,8 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult?> LoginAsync(
         LoginRequestDto request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var user = await _users.GetByEmailAsync(request.Email, cancellationToken);
         if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
@@ -43,7 +45,8 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult?> RefreshAsync(
         string? rawRefreshToken,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(rawRefreshToken))
         {
@@ -77,7 +80,8 @@ public class AuthService : IAuthService
         var refresh = _tokenService.GenerateRefreshToken();
         await _refreshTokens.AddAsync(
             CreateTokenEntity(stored.UserId, refresh, now),
-            cancellationToken);
+            cancellationToken
+        );
 
         stored.RevokedAtUtc = now;
         stored.ReplacedByTokenHash = refresh.TokenHash;
@@ -89,12 +93,14 @@ public class AuthService : IAuthService
             access.ExpiresAtUtc,
             stored.User.Email,
             refresh.RawToken,
-            refresh.ExpiresAtUtc);
+            refresh.ExpiresAtUtc
+        );
     }
 
     public async Task LogoutAsync(
         string? rawRefreshToken,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(rawRefreshToken))
         {
@@ -119,7 +125,8 @@ public class AuthService : IAuthService
 
         await _refreshTokens.AddAsync(
             CreateTokenEntity(user.Id, refresh, DateTime.UtcNow),
-            cancellationToken);
+            cancellationToken
+        );
         await _refreshTokens.SaveChangesAsync(cancellationToken);
 
         return new AuthResult(
@@ -127,16 +134,21 @@ public class AuthService : IAuthService
             access.ExpiresAtUtc,
             user.Email,
             refresh.RawToken,
-            refresh.ExpiresAtUtc);
+            refresh.ExpiresAtUtc
+        );
     }
 
-    private static RefreshToken CreateTokenEntity(Guid userId, RefreshTokenInfo info, DateTime createdAtUtc) =>
+    private static RefreshToken CreateTokenEntity(
+        Guid userId,
+        RefreshTokenInfo info,
+        DateTime createdAtUtc
+    ) =>
         new()
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             TokenHash = info.TokenHash,
             ExpiresAtUtc = info.ExpiresAtUtc,
-            CreatedAtUtc = createdAtUtc
+            CreatedAtUtc = createdAtUtc,
         };
 }

@@ -22,7 +22,8 @@ public class ContactsController : ControllerBase
         IContactService contactService,
         IValidator<CreateContactRequestDto> createValidator,
         IValidator<UpdateContactRequestDto> updateValidator,
-        IValidator<ChangeContactPasswordRequestDto> changePasswordValidator)
+        IValidator<ChangeContactPasswordRequestDto> changePasswordValidator
+    )
     {
         _contactService = contactService;
         _createValidator = createValidator;
@@ -65,7 +66,8 @@ public class ContactsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create(
         [FromBody] CreateContactRequestDto request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var validation = await _createValidator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
@@ -93,7 +95,8 @@ public class ContactsController : ControllerBase
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateContactRequestDto request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var validation = await _updateValidator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
@@ -128,7 +131,8 @@ public class ContactsController : ControllerBase
     public async Task<IActionResult> ChangePassword(
         Guid id,
         [FromBody] ChangeContactPasswordRequestDto request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var validation = await _changePasswordValidator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
@@ -148,7 +152,12 @@ public class ContactsController : ControllerBase
             return Unauthorized();
         }
 
-        var changed = await _contactService.ChangePasswordAsync(id, request, callerEmail, cancellationToken);
+        var changed = await _contactService.ChangePasswordAsync(
+            id,
+            request,
+            callerEmail,
+            cancellationToken
+        );
         if (!changed)
         {
             return NotFound();

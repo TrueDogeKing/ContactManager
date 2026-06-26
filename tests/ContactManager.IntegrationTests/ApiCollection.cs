@@ -31,11 +31,16 @@ public abstract class IntegrationTestBase
     {
         var client = Factory.CreateClient();
         var response = await client.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(AdminEmail, AdminPassword));
+            "/api/auth/login",
+            new LoginRequestDto(AdminEmail, AdminPassword)
+        );
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", body!.Token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            body!.Token
+        );
         return client;
     }
 }

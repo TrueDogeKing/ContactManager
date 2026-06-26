@@ -4,7 +4,6 @@ namespace ContactManager.Domain.Exceptions;
 /// combination). Mapped to HTTP 400.
 public class BusinessRuleViolationException : Exception
 {
-    public BusinessRuleViolationException(string message) : base(message)
-    {
-    }
+    public BusinessRuleViolationException(string message)
+        : base(message) { }
 }

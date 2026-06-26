@@ -16,7 +16,9 @@ public class CategoryService : ICategoryService
         _categories = categories;
     }
 
-    public async Task<IReadOnlyList<CategoryResponseDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CategoryResponseDto>> GetAllAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         var categories = await _categories.GetAllWithSubcategoriesAsync(cancellationToken);
         return categories.Select(ToResponse).ToList();
@@ -28,8 +30,9 @@ public class CategoryService : ICategoryService
             category.Id,
             category.Name,
             category.AllowsCustomSubcategory,
-            category.Subcategories
-                .OrderBy(s => s.Id)
+            category
+                .Subcategories.OrderBy(s => s.Id)
                 .Select(s => new SubcategoryResponseDto(s.Id, s.Name))
-                .ToList());
+                .ToList()
+        );
 }

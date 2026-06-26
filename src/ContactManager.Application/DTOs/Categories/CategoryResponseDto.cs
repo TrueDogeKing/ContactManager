@@ -6,4 +6,5 @@ public record CategoryResponseDto(
     int Id,
     string Name,
     bool AllowsCustomSubcategory,
-    IReadOnlyList<SubcategoryResponseDto> Subcategories);
+    IReadOnlyList<SubcategoryResponseDto> Subcategories
+);

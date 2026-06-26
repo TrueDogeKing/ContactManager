@@ -12,9 +12,16 @@ public interface IRefreshTokenRepository
     /// Returns the token with the given hash (including the related user) or null.
     /// <param name="tokenHash">Token hash.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task<RefreshToken?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default);
+    Task<RefreshToken?> GetByTokenHashAsync(
+        string tokenHash,
+        CancellationToken cancellationToken = default
+    );
 
-    Task RevokeAllActiveForUserAsync(Guid userId, DateTime revokedAtUtc, CancellationToken cancellationToken = default);
+    Task RevokeAllActiveForUserAsync(
+        Guid userId,
+        DateTime revokedAtUtc,
+        CancellationToken cancellationToken = default
+    );
 
     /// Persists changes to the database.
     /// <param name="cancellationToken">Cancellation token.</param>

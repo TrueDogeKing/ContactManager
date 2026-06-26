@@ -10,7 +10,7 @@ interface JWTPayload {
 
 export function decodeJWT(token: string): JWTPayload | null {
   try {
-    const parts = token.split('.');
+    const parts = token.split(".");
     if (parts.length !== 3) return null;
     const payload = JSON.parse(atob(parts[1]));
     return payload;
@@ -22,8 +22,8 @@ export function decodeJWT(token: string): JWTPayload | null {
 export function getUserNameFromToken(token: string | null): string | null {
   if (!token) return null;
   const payload = decodeJWT(token);
-  const firstName = payload?.given_name || '';
-  const lastName = payload?.family_name || '';
+  const firstName = payload?.given_name || "";
+  const lastName = payload?.family_name || "";
   const fullName = `${firstName} ${lastName}`.trim();
   return fullName || null;
 }

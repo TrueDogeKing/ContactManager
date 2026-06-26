@@ -13,22 +13,18 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.Email)
-            .IsRequired()
-            .HasMaxLength(256);
+        builder.Property(u => u.Email).IsRequired().HasMaxLength(256);
 
         // Unikalny indeks na adres e-mail.
-        builder.HasIndex(u => u.Email)
-            .IsUnique();
+        builder.HasIndex(u => u.Email).IsUnique();
 
-        builder.Property(u => u.PasswordHash)
-            .IsRequired();
+        builder.Property(u => u.PasswordHash).IsRequired();
 
-        builder.Property(u => u.CreatedAt)
-            .IsRequired();
+        builder.Property(u => u.CreatedAt).IsRequired();
 
         // Optimistic concurrency oparte o systemową kolumnę PostgreSQL "xmin".
-        builder.Property(u => u.RowVersion)
+        builder
+            .Property(u => u.RowVersion)
             .HasColumnName("xmin")
             .HasColumnType("xid")
             .ValueGeneratedOnAddOrUpdate()
