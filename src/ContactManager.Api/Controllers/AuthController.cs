@@ -1,9 +1,11 @@
+using ContactManager.Api.RateLimiting;
 using ContactManager.Application.DTOs.Auth;
 using ContactManager.Application.Interfaces;
 using ContactManager.Application.Models;
 using ContactManager.Infrastructure.Auth;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace ContactManager.Api.Controllers;
@@ -33,9 +35,11 @@ public class AuthController : ControllerBase
     /// <param name="request">Login data.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequestDto request,
         CancellationToken cancellationToken)

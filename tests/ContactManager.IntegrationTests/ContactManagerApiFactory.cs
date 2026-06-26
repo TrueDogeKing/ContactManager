@@ -21,6 +21,10 @@ public class ContactManagerApiFactory : WebApplicationFactory<Program>, IAsyncLi
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // The shared suite performs many admin logins; raise the auth rate limit so it never trips.
+        // A dedicated test enables a strict limit on its own isolated host (WithWebHostBuilder).
+        builder.UseSetting("RateLimiting:Auth:PermitLimit", "100000");
+
         builder.ConfigureTestServices(services =>
         {
             // Replace the application's DbContext (which points at the configured connection
