@@ -57,7 +57,7 @@
 // ------------------------------------------------------------------
 
 *ContactManager* to wielowarstwowa aplikacja webowa służąca do zarządzania
-kontaktami (książką adresową). Część serwerowa to API REST zbudowane w
+kontaktami. Część serwerowa to API REST zbudowane w
 *ASP.NET Core 10.0*, korzystające z bazy danych *PostgreSQL*, z uwierzytelnianiem
 opartym o tokeny *JWT* oraz mechanizm odświeżania (refresh token) z rotacją i
 wykrywaniem kradzieży tokenu. Część kliencka to aplikacja jednostronicowa (SPA)
@@ -84,8 +84,7 @@ Kierunek zależności między projektami:
 
 Zastosowane wzorce projektowe: *Clean Architecture*, *Repository*, *Service Layer*,
 *DTO*, *Dependency Injection*, walidacja (*FluentValidation*), uwierzytelnianie *JWT*
-z rotacją refresh tokenów, *optimistic concurrency* (znacznik wersji wiersza – kolumna
-systemowa `xmin` PostgreSQL) oraz globalna obsługa wyjątków mapowana na `ProblemDetails`.
+z rotacją refresh tokenów, *optimistic concurrency* oraz globalna obsługa wyjątków mapowana na `ProblemDetails`.
 
 // ------------------------------------------------------------------
 = Opis klas i metod
@@ -112,8 +111,12 @@ Konto uwierzytelnionego użytkownika systemu (dane logowania i metadane).
 )
 
 *Contact* — `Entities/Contact.cs` \
-Rekord kontaktu z pełnym profilem, klasyfikacją kategoria/podkategoria oraz
-osobnym hasłem (logowanie kontaktu).
+Rekord kontaktu z pełnym profilem, klasyfikacją kategoria/podkategoria oraz hasłem.
+Kontakt jest powiązany (po e-mailu) z kontem logowania `User`: utworzenie kontaktu zakłada
+konto o tym samym e-mailu i haśle, zmiana e-maila/hasła aktualizuje konto, a usunięcie
+kontaktu je kasuje — dzięki czemu kontakt może zalogować się własnymi danymi.
+
+#pagebreak()
 
 #table(
   columns: (auto, auto, 1fr),
@@ -158,6 +161,8 @@ trafia jednorazowo do klienta (cookie HttpOnly). Umożliwia rotację tokenów i 
   [`IsActive`], [`bool`], [Właściwość wyliczana: token nieunieważniony i niewygasły.],
 )
 
+#pagebreak()
+
 === Wyjątki dziedzinowe
 
 Lokalizacja: `Exceptions/`. Każdy mapowany jest przez `GlobalExceptionHandler` na
@@ -167,6 +172,7 @@ odpowiedni kod HTTP.
   columns: (auto, auto, 1fr),
   [*Klasa*], [*HTTP*], [*Znaczenie*],
   [`BusinessRuleViolationException`], [400], [Naruszenie reguły biznesowej (np. błędna para kategoria/podkategoria).],
+  [`ForbiddenActionException`], [403], [Brak uprawnień do operacji (np. zmiana hasła cudzego konta).],
   [`EmailConflictException`], [409], [Kontakt o podanym e-mailu już istnieje.],
   [`ConcurrencyConflictException`], [409], [Konflikt współbieżności — rekord zmieniony między odczytem a zapisem.],
 )
@@ -183,9 +189,9 @@ Lokalizacja: `Repositories/`. Definiują kontrakty dostępu do danych
 - `Task<IReadOnlyList<Contact>> GetAllAsync(CancellationToken)` — wszystkie kontakty (z dołączonymi słownikami).
 - `Task<Contact?> GetByIdAsync(Guid id, CancellationToken)` — kontakt po identyfikatorze (śledzony) lub `null`.
 - `Task<Contact?> GetByEmailAsync(string email, CancellationToken)` — kontakt po e-mailu (kontrola unikalności).
-- `Task AddAsync(Contact, CancellationToken)` — dodanie i zapis kontaktu.
+- `Task AddAsync(Contact, User loginUser, CancellationToken)` — dodanie kontaktu wraz z kontem logowania (jeden zapis/transakcja).
 - `Task UpdateAsync(Contact, uint expectedRowVersion, CancellationToken)` — aktualizacja z kontrolą współbieżności; rzuca `ConcurrencyConflictException` przy niezgodności `RowVersion`.
-- `Task DeleteAsync(Contact, CancellationToken)` — usunięcie i zapis.
+- `Task DeleteAsync(Contact, User? loginUser, CancellationToken)` — usunięcie kontaktu wraz z kontem logowania (jeden zapis/transakcja).
 
 *ICategoryRepository*
 - `Task<IReadOnlyList<Category>> GetAllWithSubcategoriesAsync(CancellationToken)` — kategorie wraz z podkategoriami.
@@ -201,6 +207,8 @@ Lokalizacja: `Repositories/`. Definiują kontrakty dostępu do danych
 
 Lokalizacja: `src/ContactManager.Application/`.
 
+#pagebreak()
+
 === Interfejsy usług
 
 *IAuthService* — uwierzytelnianie.
@@ -211,10 +219,10 @@ Lokalizacja: `src/ContactManager.Application/`.
 *IContactService* — logika kontaktów.
 - `Task<IReadOnlyList<ContactResponseDto>> GetAllAsync(CancellationToken)` — lista wszystkich kontaktów.
 - `Task<ContactResponseDto?> GetByIdAsync(Guid id, CancellationToken)` — kontakt po id lub `null`.
-- `Task<ContactResponseDto> CreateAsync(CreateContactRequestDto, CancellationToken)` — utworzenie kontaktu (hashowanie hasła); `EmailConflictException` przy zajętym e-mailu.
-- `Task<ContactResponseDto?> UpdateAsync(Guid id, UpdateContactRequestDto, CancellationToken)` — aktualizacja; `null` gdy brak; `EmailConflictException` / `ConcurrencyConflictException`.
-- `Task<bool> DeleteAsync(Guid id, CancellationToken)` — usunięcie; `false` gdy brak.
-- `Task<bool> ChangePasswordAsync(Guid id, ChangeContactPasswordRequestDto, CancellationToken)` — zmiana hasła (ponowne hashowanie); `false` gdy brak; kontrola `RowVersion`.
+- `Task<ContactResponseDto> CreateAsync(CreateContactRequestDto, CancellationToken)` — utworzenie kontaktu (hashowanie hasła) wraz z kontem logowania; `EmailConflictException` przy e-mailu zajętym w kontaktach lub kontach.
+- `Task<ContactResponseDto?> UpdateAsync(Guid id, UpdateContactRequestDto, CancellationToken)` — aktualizacja (zmiana e-maila synchronizuje konto logowania); `null` gdy brak; `EmailConflictException` / `ConcurrencyConflictException`.
+- `Task<bool> DeleteAsync(Guid id, CancellationToken)` — usunięcie kontaktu wraz z kontem logowania; `false` gdy brak.
+- `Task<bool> ChangePasswordAsync(Guid id, ChangeContactPasswordRequestDto, string callerEmail, CancellationToken)` — zmiana hasła kontaktu i konta logowania; dozwolona tylko właścicielowi (`callerEmail` = e-mail kontaktu), inaczej `ForbiddenActionException`; `false` gdy brak; kontrola `RowVersion`.
 
 *ICategoryService*
 - `Task<IReadOnlyList<CategoryResponseDto>> GetAllAsync(CancellationToken)` — kategorie z podkategoriami.
@@ -232,7 +240,8 @@ Lokalizacja: `src/ContactManager.Application/`.
 
 *ContactService* — `Services/ContactService.cs` \
 Orkiestruje repozytorium kontaktów, waliduje reguły kategoria/podkategoria, hashuje
-hasła i mapuje encje na DTO. Konstruktor: `(IContactRepository, ICategoryRepository, IPasswordHasher)`.
+hasła, utrzymuje spójność z kontem logowania (`User`) i mapuje encje na DTO.
+Konstruktor: `(IContactRepository, ICategoryRepository, IUserRepository, IPasswordHasher)`.
 Metody prywatne: `ValidateCategorySelectionAsync(...)` — sprawdza poprawność pary
 kategoria/podkategoria względem reguł w bazie (rzuca `BusinessRuleViolationException`,
 zwraca znormalizowaną podkategorię tekstową); `ToResponse(Contact)` — mapowanie na DTO
@@ -352,6 +361,8 @@ repozytoria (Scoped).
 
 Lokalizacja: `src/ContactManager.Api/`.
 
+#pagebreak()
+
 === Kontrolery
 
 *AuthController* — trasa `api/auth`. Access token w treści odpowiedzi; refresh token w
@@ -359,7 +370,7 @@ cookie HttpOnly (flagi Secure, SameSite, Path).
 #table(
   columns: (auto, auto, 1fr),
   [*Metoda*], [*HTTP*], [*Działanie*],
-  [`Login`], [`POST`], [Walidacja danych → `LoginAsync` → 200 + `LoginResponseDto` + cookie, lub 401.],
+  [`Login`], [`POST`], [Walidacja → `LoginAsync` → 200 + `LoginResponseDto` + cookie, lub 401. Ograniczenie liczby prób (rate limiting) → 429 + nagłówek `Retry-After`.],
   [`Refresh`], [`POST`], [Odczyt cookie → `RefreshAsync` → 200 + nowa para + odświeżone cookie, lub 401.],
   [`Logout`], [`POST`], [Unieważnienie tokenu, usunięcie cookie → 204 (idempotentne).],
 )
@@ -374,7 +385,7 @@ Metody pomocnicze: `IssueTokens`, `SetRefreshTokenCookie`, `DeleteRefreshTokenCo
   [`GetById`], [`GET {id}`], [Anon.], [200 + `ContactResponseDto` lub 404.],
   [`Create`], [`POST`], [Auth], [Walidacja → `CreateAsync` → 201 (nagłówek Location) lub 400/409.],
   [`Update`], [`PUT {id}`], [Auth], [Walidacja → `UpdateAsync` → 204 lub 404/409/400.],
-  [`ChangePassword`], [`PUT {id}/password`], [Auth], [Walidacja → `ChangePasswordAsync` → 204 lub 404/409/400.],
+  [`ChangePassword`], [`PUT {id}/password`], [Auth (właściciel)], [Walidacja → `ChangePasswordAsync` → 204 lub 403 (cudze konto)/404/409/400. E-mail wywołującego z claimu JWT.],
   [`Delete`], [`DELETE {id}`], [Auth], [`DeleteAsync` → 204 lub 404.],
 )
 
@@ -385,7 +396,7 @@ Metody pomocnicze: `IssueTokens`, `SetRefreshTokenCookie`, `DeleteRefreshTokenCo
 
 *GlobalExceptionHandler* (`IExceptionHandler`) — `Errors/GlobalExceptionHandler.cs` \
 Middleware przechwytujące nieobsłużone wyjątki i mapujące je na odpowiedzi `ProblemDetails`.
-Wyjątki dziedzinowe → konkretne kody (400/409); pozostałe → 500 bez ujawniania szczegółów
+Wyjątki dziedzinowe → konkretne kody (400/403/409); pozostałe → 500 bez ujawniania szczegółów
 (z logowaniem). Metoda `TryHandleAsync(HttpContext, Exception, CancellationToken)`.
 
 *BearerSecuritySchemeTransformer* (`IOpenApiDocumentTransformer`) — `OpenApi/...` \
@@ -398,7 +409,9 @@ w UI dokumentacji). Metoda `TransformAsync(...)`.
 (z `BearerSecuritySchemeTransformer`), health checks, CORS (`FrontendCorsPolicy`),
 `ProblemDetails` + `GlobalExceptionHandler`, usługi warstw (`AddApplication`,
 `AddInfrastructure`), uwierzytelnianie JWT Bearer (walidacja issuer/audience/lifetime/key,
-HMAC-SHA256) i autoryzację. Potok middleware: obsługa wyjątków → OpenAPI (dev) → CORS →
+HMAC-SHA256), autoryzację oraz rate limiting endpointu logowania (okno stałe, partycjonowane
+po IP klienta; sekcja konfiguracji `RateLimiting:Auth`, odpowiedź 429 z nagłówkiem `Retry-After`).
+Potok middleware: obsługa wyjątków → OpenAPI (dev) → CORS → rate limiter →
 uwierzytelnianie → autoryzacja → kontrolery → health checks. Przy starcie wykonuje
 (opcjonalnie) automatyczne migracje i seed danych. Klasa `Program` jest publiczna na
 potrzeby testów integracyjnych (`WebApplicationFactory<Program>`).
@@ -446,7 +459,7 @@ potrzeby testów integracyjnych (`WebApplicationFactory<Program>`).
 
 React 19 (`react`, `react-dom`), `react-router-dom` 7 (routing), `axios` (klient HTTP
 do API). Narzędzia: *Vite* 8 (bundler/serwer dev), *TypeScript* 6, *ESLint* 10
-(+ wtyczki React).
+(+ wtyczki React), *Prettier* (formatowanie).
 
 // ------------------------------------------------------------------
 = Sposób kompilacji i uruchomienia
@@ -464,7 +477,7 @@ z `package.json`, a *`mise`* — zadania infrastrukturalne z `mise.toml`. Zaleca
 - Node.js 22 + Vite+ (frontend).
 - Docker (baza danych / opcjonalnie pełny stack).
 
-Ustawienia kompilatora (`Directory.Build.props`): `LangVersion = latest` (C# 14+),
+Ustawienia kompilatora (`Directory.Build.props`): `LangVersion = latest` (C\# 14+),
 `Nullable = enable`, `ImplicitUsings = enable`.
 
 == Krok po kroku
@@ -495,6 +508,16 @@ Skrypty testowe wywołują `dotnet test`:
   [`vpr test:integration`], [Testy integracyjne (`ContactManager.IntegrationTests`, `WebApplicationFactory` + Testcontainers PostgreSQL).],
 )
 
+== Formatowanie i CI
+
+Formatowanie kodu: `vpr format` (backend + frontend), `vpr format:backend`, `vpr format:frontend`.
+
+Ciągła integracja (GitHub Actions, `.github/workflows/`):
+- `ci.yml` — walidacja każdego PR do `main`: build i testy backendu (z Testcontainers PostgreSQL)
+  oraz lint, typecheck i build frontendu.
+- `release.yml` — na tagu `v*` buduje i publikuje obrazy Docker (API i frontend) do GHCR
+  oraz tworzy wydanie GitHub.
+
 == Konfiguracja i alternatywa
 
 Zmienne środowiskowe definiuje się w pliku `.env` (na bazie `.env.example`):
@@ -511,5 +534,8 @@ Aplikacja kliencka (`frontend/`) to SPA w *React 19* + *TypeScript*, budowana na
 *Vite*. Komunikacja z API odbywa się przez *axios* (serwer dev proxuje ścieżkę `/api` na
 backend `http://localhost:5298`), a nawigację obsługuje *react-router-dom*. Polecenia:
 `vp dev` (serwer deweloperski), `vp build` (build produkcyjny do `frontend/dist/`),
-`vp lint` (ESLint). Opis poszczególnych komponentów wykracza poza zakres niniejszej
-specyfikacji.
+`vp lint` (ESLint), `vp format` (Prettier). W produkcji statyczny build serwuje nginx
+(`frontend/nginx.conf`) z nagłówkami bezpieczeństwa (CSP, `X-Content-Type-Options`,
+`X-Frame-Options`, `Referrer-Policy`) oraz proxy `/api` do backendu. Token dostępu jest
+przechowywany w pamięci (odporność na XSS), a sesję wznawia cookie HttpOnly z refresh tokenem.
+Opis poszczególnych komponentów wykracza poza zakres niniejszej specyfikacji.

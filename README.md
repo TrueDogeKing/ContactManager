@@ -45,6 +45,10 @@ vpr frontend       # Vite dev server at http://localhost:5173
 vpr test               # all tests
 vpr test:unit          # unit tests
 vpr test:integration   # integration tests (Testcontainers → needs Docker)
+vpr format             # format backend + frontend
 mise db:down           # stop the database
 mise db:reset          # recreate the database (wipes data)
 ```
+
+CI runs on every PR to `main` (`.github/workflows/ci.yml`): backend build + tests and
+frontend lint/typecheck/build.
