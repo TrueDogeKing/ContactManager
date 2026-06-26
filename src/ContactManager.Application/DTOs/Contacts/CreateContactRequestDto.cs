@@ -10,4 +10,5 @@ public record CreateContactRequestDto(
     DateOnly BirthDate,
     int CategoryId,
     int? SubcategoryId,
-    string? CustomSubcategory);
+    string? CustomSubcategory
+);

@@ -14,7 +14,8 @@ public class GlobalExceptionHandler : IExceptionHandler
     /// Creates the handler with dependencies.
     public GlobalExceptionHandler(
         IProblemDetailsService problemDetailsService,
-        ILogger<GlobalExceptionHandler> logger)
+        ILogger<GlobalExceptionHandler> logger
+    )
     {
         _problemDetailsService = problemDetailsService;
         _logger = logger;
@@ -23,38 +24,62 @@ public class GlobalExceptionHandler : IExceptionHandler
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var (statusCode, title, detail) = Map(exception);
 
         if (statusCode == StatusCodes.Status500InternalServerError)
         {
-            _logger.LogError(exception, "Unhandled exception processing {Method} {Path}.",
-                httpContext.Request.Method, httpContext.Request.Path);
+            _logger.LogError(
+                exception,
+                "Unhandled exception processing {Method} {Path}.",
+                httpContext.Request.Method,
+                httpContext.Request.Path
+            );
         }
 
         httpContext.Response.StatusCode = statusCode;
 
-        return await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = httpContext,
-            Exception = exception,
-            ProblemDetails = new ProblemDetails
+        return await _problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
             {
-                Status = statusCode,
-                Title = title,
-                Detail = detail
+                HttpContext = httpContext,
+                Exception = exception,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = statusCode,
+                    Title = title,
+                    Detail = detail,
+                },
             }
-        });
+        );
     }
 
     /// Resolves the status code, title and safe detail for a given exception.
     private static (int StatusCode, string Title, string? Detail) Map(Exception exception) =>
         exception switch
         {
-            BusinessRuleViolationException => (StatusCodes.Status400BadRequest, "Bad Request", exception.Message),
-            EmailConflictException => (StatusCodes.Status409Conflict, "Conflict", exception.Message),
-            ConcurrencyConflictException => (StatusCodes.Status409Conflict, "Conflict", exception.Message),
-            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.", null)
+            BusinessRuleViolationException => (
+                StatusCodes.Status400BadRequest,
+                "Bad Request",
+                exception.Message
+            ),
+            ForbiddenActionException => (
+                StatusCodes.Status403Forbidden,
+                "Forbidden",
+                exception.Message
+            ),
+            EmailConflictException => (
+                StatusCodes.Status409Conflict,
+                "Conflict",
+                exception.Message
+            ),
+            ConcurrencyConflictException => (
+                StatusCodes.Status409Conflict,
+                "Conflict",
+                exception.Message
+            ),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.", null),
         };
 }

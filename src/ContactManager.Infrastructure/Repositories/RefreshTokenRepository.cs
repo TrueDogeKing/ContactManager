@@ -16,18 +16,22 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     public async Task AddAsync(RefreshToken token, CancellationToken cancellationToken = default) =>
         await _db.RefreshTokens.AddAsync(token, cancellationToken);
 
-    public Task<RefreshToken?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default) =>
-        _db.RefreshTokens
-            .Include(t => t.User)
+    public Task<RefreshToken?> GetByTokenHashAsync(
+        string tokenHash,
+        CancellationToken cancellationToken = default
+    ) =>
+        _db
+            .RefreshTokens.Include(t => t.User)
             .FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
 
     public async Task RevokeAllActiveForUserAsync(
         Guid userId,
         DateTime revokedAtUtc,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        var activeTokens = await _db.RefreshTokens
-            .Where(t => t.UserId == userId && t.RevokedAtUtc == null)
+        var activeTokens = await _db
+            .RefreshTokens.Where(t => t.UserId == userId && t.RevokedAtUtc == null)
             .ToListAsync(cancellationToken);
 
         foreach (var token in activeTokens)

@@ -16,11 +16,16 @@ namespace ContactManager.IntegrationTests;
 /// and the database is seeded with the same DataSeeder the application uses on startup.
 public class ContactManagerApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgres:16-alpine")
-        .Build();
+    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder(
+        "postgres:16-alpine"
+    ).Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // The shared suite performs many admin logins; raise the auth rate limit so it never trips.
+        // A dedicated test enables a strict limit on its own isolated host (WithWebHostBuilder).
+        builder.UseSetting("RateLimiting:Auth:PermitLimit", "100000");
+
         builder.ConfigureTestServices(services =>
         {
             // Replace the application's DbContext (which points at the configured connection
@@ -28,7 +33,8 @@ public class ContactManagerApiFactory : WebApplicationFactory<Program>, IAsyncLi
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<AppDbContext>();
             services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(_database.GetConnectionString()));
+                options.UseNpgsql(_database.GetConnectionString())
+            );
         });
     }
 

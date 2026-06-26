@@ -6,5 +6,7 @@ namespace ContactManager.Application.Interfaces;
 public interface ICategoryService
 {
     /// Returns all categories with their subcategories.
-    Task<IReadOnlyList<CategoryResponseDto>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CategoryResponseDto>> GetAllAsync(
+        CancellationToken cancellationToken = default
+    );
 }

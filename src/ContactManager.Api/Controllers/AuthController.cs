@@ -1,9 +1,11 @@
+using ContactManager.Api.RateLimiting;
 using ContactManager.Application.DTOs.Auth;
 using ContactManager.Application.Interfaces;
 using ContactManager.Application.Models;
 using ContactManager.Infrastructure.Auth;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace ContactManager.Api.Controllers;
@@ -22,7 +24,8 @@ public class AuthController : ControllerBase
     public AuthController(
         IAuthService authService,
         IValidator<LoginRequestDto> loginValidator,
-        IOptions<RefreshTokenSettings> refreshSettings)
+        IOptions<RefreshTokenSettings> refreshSettings
+    )
     {
         _authService = authService;
         _loginValidator = loginValidator;
@@ -33,12 +36,15 @@ public class AuthController : ControllerBase
     /// <param name="request">Login data.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequestDto request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var validation = await _loginValidator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
@@ -93,7 +99,9 @@ public class AuthController : ControllerBase
     private IActionResult IssueTokens(AuthResult result)
     {
         SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiresAtUtc);
-        return Ok(new LoginResponseDto(result.AccessToken, result.AccessTokenExpiresAtUtc, result.Email));
+        return Ok(
+            new LoginResponseDto(result.AccessToken, result.AccessTokenExpiresAtUtc, result.Email)
+        );
     }
 
     private void SetRefreshTokenCookie(string token, DateTime expiresAtUtc)
@@ -106,12 +114,13 @@ public class AuthController : ControllerBase
     private void DeleteRefreshTokenCookie() =>
         Response.Cookies.Delete(_refreshSettings.CookieName, BuildCookieOptions());
 
-    private CookieOptions BuildCookieOptions() => new()
-    {
-        HttpOnly = true,
-        Secure = _refreshSettings.CookieSecure,
-        SameSite = Enum.Parse<SameSiteMode>(_refreshSettings.CookieSameSite, ignoreCase: true),
-        Path = _refreshSettings.CookiePath,
-        IsEssential = true
-    };
+    private CookieOptions BuildCookieOptions() =>
+        new()
+        {
+            HttpOnly = true,
+            Secure = _refreshSettings.CookieSecure,
+            SameSite = Enum.Parse<SameSiteMode>(_refreshSettings.CookieSameSite, ignoreCase: true),
+            Path = _refreshSettings.CookiePath,
+            IsEssential = true,
+        };
 }

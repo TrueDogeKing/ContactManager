@@ -11,4 +11,5 @@ public record UpdateContactRequestDto(
     int CategoryId,
     int? SubcategoryId,
     string? CustomSubcategory,
-    uint RowVersion);
+    uint RowVersion
+);

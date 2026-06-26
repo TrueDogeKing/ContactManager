@@ -5,16 +5,17 @@ import {
   useState,
   useSyncExternalStore,
   type ReactNode,
-} from 'react';
-import { getAccessToken, subscribeToken } from '../api/tokenStore';
-import { getUserNameFromToken } from '../api/jwt';
-import { refreshAccessToken } from '../api/client';
-import { login as apiLogin, logout as apiLogout } from '../api/auth';
-import type { LoginRequest } from '../api/types';
+} from "react";
+import { getAccessToken, subscribeToken } from "../api/tokenStore";
+import { getUserEmailFromToken, getUserNameFromToken } from "../api/jwt";
+import { refreshAccessToken } from "../api/client";
+import { login as apiLogin, logout as apiLogout } from "../api/auth";
+import type { LoginRequest } from "../api/types";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
   userName: string | null;
+  userEmail: string | null;
   // True until the initial silent refresh resolves; used to avoid premature redirects.
   isBooting: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextValue = {
     isAuthenticated: token !== null,
     userName: getUserNameFromToken(token),
+    userEmail: getUserEmailFromToken(token),
     isBooting,
     login: (credentials) => apiLogin(credentials),
     logout: () => apiLogout(),
@@ -43,10 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// Hook colocated with its provider; the Fast Refresh rule only matters for dev DX.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider.');
+    throw new Error("useAuth must be used within an AuthProvider.");
   }
   return context;
 }

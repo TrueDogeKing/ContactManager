@@ -20,7 +20,10 @@ public class JwtTokenService : ITokenService
     private readonly RefreshTokenSettings _refreshSettings;
 
     ///Creates service with JWT and refresh token settings.
-    public JwtTokenService(IOptions<JwtSettings> settings, IOptions<RefreshTokenSettings> refreshSettings)
+    public JwtTokenService(
+        IOptions<JwtSettings> settings,
+        IOptions<RefreshTokenSettings> refreshSettings
+    )
     {
         _settings = settings.Value;
         _refreshSettings = refreshSettings.Value;
@@ -36,7 +39,7 @@ public class JwtTokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName ?? ""),
             new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName ?? ""),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
@@ -47,7 +50,8 @@ public class JwtTokenService : ITokenService
             audience: _settings.Audience,
             claims: claims,
             expires: expiresAtUtc,
-            signingCredentials: credentials);
+            signingCredentials: credentials
+        );
 
         var encoded = new JwtSecurityTokenHandler().WriteToken(token);
         return new AccessToken(encoded, expiresAtUtc);
@@ -56,7 +60,8 @@ public class JwtTokenService : ITokenService
     public RefreshTokenInfo GenerateRefreshToken()
     {
         var bytes = RandomNumberGenerator.GetBytes(RefreshTokenBytes);
-        var rawToken = Convert.ToBase64String(bytes)
+        var rawToken = Convert
+            .ToBase64String(bytes)
             .TrimEnd('=')
             .Replace('+', '-')
             .Replace('/', '_');

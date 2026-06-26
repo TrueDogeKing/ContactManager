@@ -9,8 +9,17 @@ public class UpdateContactRequestValidatorTests
     private readonly UpdateContactRequestValidator _validator = new();
 
     private static UpdateContactRequestDto Valid() =>
-        new("Jan", "Kowalski", "jan@example.com", "+48123456789",
-            new DateOnly(1990, 1, 1), 1, null, null, RowVersion: 1);
+        new(
+            "Jan",
+            "Kowalski",
+            "jan@example.com",
+            "+48123456789",
+            new DateOnly(1990, 1, 1),
+            1,
+            null,
+            null,
+            RowVersion: 1
+        );
 
     [Fact]
     public void ValidRequest_PassesValidation()
@@ -59,7 +68,12 @@ public class UpdateContactRequestValidatorTests
     [Fact]
     public void CustomSubcategory_TooLong_Fails()
     {
-        var result = _validator.TestValidate(Valid() with { CustomSubcategory = new string('a', 101) });
+        var result = _validator.TestValidate(
+            Valid() with
+            {
+                CustomSubcategory = new string('a', 101),
+            }
+        );
 
         result.ShouldHaveValidationErrorFor(x => x.CustomSubcategory);
     }

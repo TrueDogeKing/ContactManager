@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 interface Props {
   title: string;
@@ -15,18 +15,18 @@ interface Props {
 export default function ConfirmDialog({
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
   busy = false,
   onConfirm,
   onCancel,
 }: Props) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !busy) onCancel();
+      if (event.key === "Escape" && !busy) onCancel();
     }
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [busy, onCancel]);
 
   return (
@@ -45,7 +45,7 @@ export default function ConfirmDialog({
             {cancelLabel}
           </button>
           <button type="button" className="danger" onClick={onConfirm} disabled={busy}>
-            {busy ? 'Working…' : confirmLabel}
+            {busy ? "Working…" : confirmLabel}
           </button>
         </div>
       </div>

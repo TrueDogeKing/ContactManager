@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
     <ProjectReference Include="..\ContactManager.Domain\ContactManager.Domain.csproj" />
     <ProjectReference Include="..\ContactManager.Application\ContactManager.Application.csproj" />
@@ -20,5 +19,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
 </Project>

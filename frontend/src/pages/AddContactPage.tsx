@@ -1,10 +1,10 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { getCategories } from '../api/categories';
-import { createContact } from '../api/contacts';
-import { getApiErrorMessage } from '../api/errors';
-import CategorySubcategoryFields from '../components/CategorySubcategoryFields';
-import type { CategoryResponse } from '../api/types';
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getCategories } from "../api/categories";
+import { createContact } from "../api/contacts";
+import { getApiErrorMessage } from "../api/errors";
+import CategorySubcategoryFields from "../components/CategorySubcategoryFields";
+import type { CategoryResponse } from "../api/types";
 
 interface FormState {
   firstName: string;
@@ -19,15 +19,15 @@ interface FormState {
 }
 
 const initialForm: FormState = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  password: '',
-  phone: '',
-  birthDate: '',
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  phone: "",
+  birthDate: "",
   categoryId: 0,
   subcategoryId: null,
-  customSubcategory: '',
+  customSubcategory: "",
 };
 
 export default function AddContactPage() {
@@ -44,7 +44,7 @@ export default function AddContactPage() {
         if (active) setCategories(data);
       })
       .catch(() => {
-        if (active) setError('Failed to load categories.');
+        if (active) setError("Failed to load categories.");
       });
     return () => {
       active = false;
@@ -61,7 +61,7 @@ export default function AddContactPage() {
       ...current,
       categoryId,
       subcategoryId: null,
-      customSubcategory: '',
+      customSubcategory: "",
     }));
   }
 
@@ -83,7 +83,7 @@ export default function AddContactPage() {
       });
       navigate(`/contacts/${created.id}`);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to create the contact.'));
+      setError(getApiErrorMessage(err, "Failed to create the contact."));
     } finally {
       setSubmitting(false);
     }
@@ -103,7 +103,7 @@ export default function AddContactPage() {
           <input
             type="text"
             value={form.firstName}
-            onChange={(e) => setField('firstName', e.target.value)}
+            onChange={(e) => setField("firstName", e.target.value)}
             required
             maxLength={100}
           />
@@ -114,7 +114,7 @@ export default function AddContactPage() {
           <input
             type="text"
             value={form.lastName}
-            onChange={(e) => setField('lastName', e.target.value)}
+            onChange={(e) => setField("lastName", e.target.value)}
             required
             maxLength={100}
           />
@@ -125,7 +125,7 @@ export default function AddContactPage() {
           <input
             type="email"
             value={form.email}
-            onChange={(e) => setField('email', e.target.value)}
+            onChange={(e) => setField("email", e.target.value)}
             required
             maxLength={256}
             autoComplete="off"
@@ -137,11 +137,17 @@ export default function AddContactPage() {
           <input
             type="password"
             value={form.password}
-            onChange={(e) => setField('password', e.target.value)}
+            onChange={(e) => setField("password", e.target.value)}
             required
             minLength={8}
+            // Mirrors the backend policy: min 8 chars, one uppercase letter, one special character.
+            pattern="(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}"
+            title="At least 8 characters, including one uppercase letter and one special character."
             autoComplete="new-password"
           />
+          <small>
+            At least 8 characters, including one uppercase letter and one special character.
+          </small>
         </label>
 
         <label>
@@ -149,7 +155,7 @@ export default function AddContactPage() {
           <input
             type="tel"
             value={form.phone}
-            onChange={(e) => setField('phone', e.target.value)}
+            onChange={(e) => setField("phone", e.target.value)}
             required
             maxLength={32}
           />
@@ -160,7 +166,7 @@ export default function AddContactPage() {
           <input
             type="date"
             value={form.birthDate}
-            onChange={(e) => setField('birthDate', e.target.value)}
+            onChange={(e) => setField("birthDate", e.target.value)}
             required
           />
         </label>
@@ -171,14 +177,14 @@ export default function AddContactPage() {
           subcategoryId={form.subcategoryId}
           customSubcategory={form.customSubcategory}
           onCategoryChange={handleCategoryChange}
-          onSubcategoryChange={(value) => setField('subcategoryId', value)}
-          onCustomSubcategoryChange={(value) => setField('customSubcategory', value)}
+          onSubcategoryChange={(value) => setField("subcategoryId", value)}
+          onCustomSubcategoryChange={(value) => setField("customSubcategory", value)}
         />
 
         {error && <p role="alert">{error}</p>}
 
         <button type="submit" disabled={submitting}>
-          {submitting ? 'Saving…' : 'Save contact'}
+          {submitting ? "Saving…" : "Save contact"}
         </button>
       </form>
     </main>

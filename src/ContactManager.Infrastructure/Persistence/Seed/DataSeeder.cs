@@ -14,14 +14,15 @@ public static class DataSeeder
     /// <param name="cancellationToken">Cancellation token.</param>
     public static async Task SeedAdminUserAsync(
         IServiceProvider services,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        var email = configuration["Admin:Email"] ?? "admin@contactmanager.local";
+        var email = configuration["Admin:Email"] ?? "admin@admin";
         var password = configuration["Admin:Password"] ?? "Admin123!";
         var firstName = configuration["Admin:FirstName"] ?? "Admin";
         var lastName = configuration["Admin:LastName"] ?? "Administrator";
@@ -31,15 +32,17 @@ public static class DataSeeder
             return;
         }
 
-        db.Users.Add(new User
-        {
-            Id = Guid.NewGuid(),
-            Email = email,
-            FirstName = firstName,
-            LastName = lastName,
-            PasswordHash = passwordHasher.Hash(password),
-            CreatedAt = DateTime.UtcNow
-        });
+        db.Users.Add(
+            new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                PasswordHash = passwordHasher.Hash(password),
+                CreatedAt = DateTime.UtcNow,
+            }
+        );
 
         await db.SaveChangesAsync(cancellationToken);
     }
@@ -49,7 +52,8 @@ public static class DataSeeder
     /// Inny uses a free-text subcategory.
     public static async Task SeedContactsAsync(
         IServiceProvider services,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -74,9 +78,9 @@ public static class DataSeeder
                 PasswordHash = passwordHash,
                 Phone = "+48 600 100 200",
                 BirthDate = new DateOnly(1990, 5, 14),
-                CategoryId = 1,    // Służbowy
+                CategoryId = 1, // Służbowy
                 SubcategoryId = 2, // Klient
-                CreatedAt = now
+                CreatedAt = now,
             },
             new Contact
             {
@@ -87,8 +91,8 @@ public static class DataSeeder
                 PasswordHash = passwordHash,
                 Phone = "+48 600 300 400",
                 BirthDate = new DateOnly(1985, 11, 2),
-                CategoryId = 2,    // Prywatny (no subcategory)
-                CreatedAt = now
+                CategoryId = 2, // Prywatny (no subcategory)
+                CreatedAt = now,
             },
             new Contact
             {
@@ -99,10 +103,10 @@ public static class DataSeeder
                 PasswordHash = passwordHash,
                 Phone = "+48 600 500 600",
                 BirthDate = new DateOnly(1995, 3, 27),
-                CategoryId = 3,    // Inny (free-text subcategory)
+                CategoryId = 3, // Inny (free-text subcategory)
                 CustomSubcategory = "Sąsiadka",
-                CreatedAt = now
-            }
+                CreatedAt = now,
+            },
         };
 
         db.Contacts.AddRange(contacts);
@@ -112,15 +116,17 @@ public static class DataSeeder
         {
             if (!await db.Users.AnyAsync(u => u.Email == contact.Email, cancellationToken))
             {
-                db.Users.Add(new User
-                {
-                    Id = Guid.NewGuid(),
-                    Email = contact.Email,
-                    FirstName = contact.FirstName,
-                    LastName = contact.LastName,
-                    PasswordHash = contact.PasswordHash,
-                    CreatedAt = now
-                });
+                db.Users.Add(
+                    new User
+                    {
+                        Id = Guid.NewGuid(),
+                        Email = contact.Email,
+                        FirstName = contact.FirstName,
+                        LastName = contact.LastName,
+                        PasswordHash = contact.PasswordHash,
+                        CreatedAt = now,
+                    }
+                );
             }
         }
 

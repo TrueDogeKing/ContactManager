@@ -1,0 +1,81 @@
+name: Release
+
+# Cuts a release when a version tag is pushed, e.g.:
+#   git tag v1.0.0 && git push origin v1.0.0
+# Builds and pushes the API and frontend images to GHCR, then creates a GitHub Release.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # create the GitHub Release
+  packages: write   # push images to GHCR
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  images:
+    name: Build & push images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Build context matches docker-compose.dev.yml.
+          - name: api
+            context: .
+            dockerfile: src/ContactManager.Api/Dockerfile
+          - name: frontend
+            context: frontend
+            dockerfile: frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Derives image tags from the git tag (e.g. v1.2.3 -> 1.2.3, 1.2, latest).
+      # Also lowercases the image name (GHCR requires it; the repo name has uppercase).
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  release:
+    name: Create GitHub Release
+    needs: images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lowercase repository name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Container images
+
+            ```
+            docker pull ${{ env.REGISTRY }}/${{ env.REPO_LC }}-api:${{ github.ref_name }}
+            docker pull ${{ env.REGISTRY }}/${{ env.REPO_LC }}-frontend:${{ github.ref_name }}
+            ```

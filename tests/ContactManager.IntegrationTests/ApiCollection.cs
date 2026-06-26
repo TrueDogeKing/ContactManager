@@ -16,7 +16,7 @@ public class ApiCollection : ICollectionFixture<ContactManagerApiFactory>
 public abstract class IntegrationTestBase
 {
     // Seeded by DataSeeder (admin from appsettings "Admin" section).
-    protected const string AdminEmail = "admin@contactmanager.local";
+    protected const string AdminEmail = "admin@admin";
     protected const string AdminPassword = "Admin123!";
 
     protected ContactManagerApiFactory Factory { get; }
@@ -31,11 +31,16 @@ public abstract class IntegrationTestBase
     {
         var client = Factory.CreateClient();
         var response = await client.PostAsJsonAsync(
-            "/api/auth/login", new LoginRequestDto(AdminEmail, AdminPassword));
+            "/api/auth/login",
+            new LoginRequestDto(AdminEmail, AdminPassword)
+        );
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", body!.Token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            body!.Token
+        );
         return client;
     }
 }

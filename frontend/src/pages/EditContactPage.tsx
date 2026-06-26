@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { isAxiosError } from 'axios';
-import { getContact, updateContact } from '../api/contacts';
-import { getCategories } from '../api/categories';
-import { getApiErrorMessage } from '../api/errors';
-import CategorySubcategoryFields from '../components/CategorySubcategoryFields';
-import type { CategoryResponse, ContactResponse } from '../api/types';
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { isAxiosError } from "axios";
+import { getContact, updateContact } from "../api/contacts";
+import { getCategories } from "../api/categories";
+import { getApiErrorMessage } from "../api/errors";
+import CategorySubcategoryFields from "../components/CategorySubcategoryFields";
+import type { CategoryResponse, ContactResponse } from "../api/types";
 
 interface FormState {
   firstName: string;
@@ -28,7 +28,7 @@ function toFormState(contact: ContactResponse): FormState {
     birthDate: contact.birthDate,
     categoryId: contact.categoryId,
     subcategoryId: contact.subcategoryId,
-    customSubcategory: contact.customSubcategory ?? '',
+    customSubcategory: contact.customSubcategory ?? "",
     rowVersion: contact.rowVersion,
   };
 }
@@ -57,13 +57,15 @@ export default function EditContactPage() {
     } catch (err) {
       setLoadError(
         isAxiosError(err) && err.response?.status === 404
-          ? 'Contact not found.'
-          : 'Failed to load the contact.',
+          ? "Contact not found."
+          : "Failed to load the contact.",
       );
     }
   }, [id]);
 
   useEffect(() => {
+    // Data loader: setState runs after an await (not synchronously in the effect body).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 
@@ -74,7 +76,7 @@ export default function EditContactPage() {
   // Switching category invalidates any previously chosen subcategory / custom text.
   function handleCategoryChange(categoryId: number) {
     setForm((current) =>
-      current ? { ...current, categoryId, subcategoryId: null, customSubcategory: '' } : current,
+      current ? { ...current, categoryId, subcategoryId: null, customSubcategory: "" } : current,
     );
   }
 
@@ -101,7 +103,7 @@ export default function EditContactPage() {
       if (isAxiosError(err) && err.response?.status === 409) {
         setConflict(true);
       } else {
-        setError(getApiErrorMessage(err, 'Failed to update the contact.'));
+        setError(getApiErrorMessage(err, "Failed to update the contact."));
       }
     } finally {
       setSubmitting(false);
@@ -135,7 +137,7 @@ export default function EditContactPage() {
           <input
             type="text"
             value={form.firstName}
-            onChange={(e) => setField('firstName', e.target.value)}
+            onChange={(e) => setField("firstName", e.target.value)}
             required
             maxLength={100}
           />
@@ -146,7 +148,7 @@ export default function EditContactPage() {
           <input
             type="text"
             value={form.lastName}
-            onChange={(e) => setField('lastName', e.target.value)}
+            onChange={(e) => setField("lastName", e.target.value)}
             required
             maxLength={100}
           />
@@ -157,7 +159,7 @@ export default function EditContactPage() {
           <input
             type="email"
             value={form.email}
-            onChange={(e) => setField('email', e.target.value)}
+            onChange={(e) => setField("email", e.target.value)}
             required
             maxLength={256}
           />
@@ -168,7 +170,7 @@ export default function EditContactPage() {
           <input
             type="tel"
             value={form.phone}
-            onChange={(e) => setField('phone', e.target.value)}
+            onChange={(e) => setField("phone", e.target.value)}
             required
             maxLength={32}
           />
@@ -179,7 +181,7 @@ export default function EditContactPage() {
           <input
             type="date"
             value={form.birthDate}
-            onChange={(e) => setField('birthDate', e.target.value)}
+            onChange={(e) => setField("birthDate", e.target.value)}
             required
           />
         </label>
@@ -190,13 +192,16 @@ export default function EditContactPage() {
           subcategoryId={form.subcategoryId}
           customSubcategory={form.customSubcategory}
           onCategoryChange={handleCategoryChange}
-          onSubcategoryChange={(value) => setField('subcategoryId', value)}
-          onCustomSubcategoryChange={(value) => setField('customSubcategory', value)}
+          onSubcategoryChange={(value) => setField("subcategoryId", value)}
+          onCustomSubcategoryChange={(value) => setField("customSubcategory", value)}
         />
 
         {conflict && (
           <div role="alert" className="conflict">
-            <p>This contact was changed by someone else since you opened it. Reload to get the latest version, then re-apply your changes.</p>
+            <p>
+              This contact was changed by someone else since you opened it. Reload to get the latest
+              version, then re-apply your changes.
+            </p>
             <button type="button" onClick={load}>
               Reload latest
             </button>
@@ -206,7 +211,7 @@ export default function EditContactPage() {
         {error && <p role="alert">{error}</p>}
 
         <button type="submit" disabled={submitting}>
-          {submitting ? 'Saving…' : 'Save changes'}
+          {submitting ? "Saving…" : "Save changes"}
         </button>
       </form>
     </main>

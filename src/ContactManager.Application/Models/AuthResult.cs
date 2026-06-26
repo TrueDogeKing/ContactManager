@@ -10,4 +10,5 @@ public record AuthResult(
     DateTime AccessTokenExpiresAtUtc,
     string Email,
     string RefreshToken,
-    DateTime RefreshTokenExpiresAtUtc);
+    DateTime RefreshTokenExpiresAtUtc
+);

@@ -13,6 +13,8 @@ public class UserRepository : IUserRepository
     /// Creates repository with database context.
     public UserRepository(AppDbContext db) => _db = db;
 
-    public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default) =>
-        _db.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+    public Task<User?> GetByEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default
+    ) => _db.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 }
