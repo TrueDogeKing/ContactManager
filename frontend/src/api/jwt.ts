@@ -27,3 +27,8 @@ export function getUserNameFromToken(token: string | null): string | null {
   const fullName = `${firstName} ${lastName}`.trim();
   return fullName || null;
 }
+
+export function getUserEmailFromToken(token: string | null): string | null {
+  if (!token) return null;
+  return decodeJWT(token)?.email ?? null;
+}

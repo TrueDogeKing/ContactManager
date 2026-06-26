@@ -53,6 +53,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         exception switch
         {
             BusinessRuleViolationException => (StatusCodes.Status400BadRequest, "Bad Request", exception.Message),
+            ForbiddenActionException => (StatusCodes.Status403Forbidden, "Forbidden", exception.Message),
             EmailConflictException => (StatusCodes.Status409Conflict, "Conflict", exception.Message),
             ConcurrencyConflictException => (StatusCodes.Status409Conflict, "Conflict", exception.Message),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.", null)

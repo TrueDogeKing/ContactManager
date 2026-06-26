@@ -1,5 +1,10 @@
 import { api } from './client';
-import type { ContactResponse, CreateContactRequest, UpdateContactRequest } from './types';
+import type {
+  ChangeContactPasswordRequest,
+  ContactResponse,
+  CreateContactRequest,
+  UpdateContactRequest,
+} from './types';
 
 // Public read endpoints for contacts.
 export async function getContacts(): Promise<ContactResponse[]> {
@@ -30,4 +35,13 @@ export async function updateContact(id: string, request: UpdateContactRequest): 
 // Deletes a contact. Requires authentication. Returns nothing (204 No Content).
 export async function deleteContact(id: string): Promise<void> {
   await api.delete(`/contacts/${id}`);
+}
+
+// Changes a contact's password. Only the signed-in owner (matching email) is allowed (else 403).
+// Optimistic concurrency via rowVersion (a stale value yields a 409). Returns nothing (204).
+export async function changeContactPassword(
+  id: string,
+  request: ChangeContactPasswordRequest,
+): Promise<void> {
+  await api.put(`/contacts/${id}/password`, request);
 }

@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { getAccessToken, subscribeToken } from '../api/tokenStore';
-import { getUserNameFromToken } from '../api/jwt';
+import { getUserEmailFromToken, getUserNameFromToken } from '../api/jwt';
 import { refreshAccessToken } from '../api/client';
 import { login as apiLogin, logout as apiLogout } from '../api/auth';
 import type { LoginRequest } from '../api/types';
@@ -15,6 +15,7 @@ import type { LoginRequest } from '../api/types';
 interface AuthContextValue {
   isAuthenticated: boolean;
   userName: string | null;
+  userEmail: string | null;
   // True until the initial silent refresh resolves; used to avoid premature redirects.
   isBooting: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextValue = {
     isAuthenticated: token !== null,
     userName: getUserNameFromToken(token),
+    userEmail: getUserEmailFromToken(token),
     isBooting,
     login: (credentials) => apiLogin(credentials),
     logout: () => apiLogout(),

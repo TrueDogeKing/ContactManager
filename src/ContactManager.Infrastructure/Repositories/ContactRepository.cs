@@ -57,9 +57,15 @@ public class ContactRepository : IContactRepository
         }
     }
 
-    public async Task DeleteAsync(Contact contact, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Contact contact, User? loginUser, CancellationToken cancellationToken = default)
     {
         _db.Contacts.Remove(contact);
+        if (loginUser is not null)
+        {
+            _db.Users.Remove(loginUser);
+        }
+
+        // Single SaveChanges => the contact and its login account are removed atomically.
         await _db.SaveChangesAsync(cancellationToken);
     }
 }

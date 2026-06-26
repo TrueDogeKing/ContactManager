@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ContactManager.Application.DTOs.Contacts;
 using ContactManager.Application.Interfaces;
 using FluentValidation;
@@ -114,12 +115,14 @@ public class ContactsController : ControllerBase
         return NoContent();
     }
 
-    /// Changes a contact's password with optimistic concurrency control. Requires authentication.
+    /// Changes a contact's password with optimistic concurrency control. Requires authentication;
+    /// only the signed-in owner (matching email) may change a contact's password.
     [HttpPut("{id:guid}/password")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ChangePassword(
@@ -138,7 +141,14 @@ public class ContactsController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        var changed = await _contactService.ChangePasswordAsync(id, request, cancellationToken);
+        // Email from the JWT (mapped to ClaimTypes.Email, or the raw "email" claim when mapping is off).
+        var callerEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue("email");
+        if (string.IsNullOrEmpty(callerEmail))
+        {
+            return Unauthorized();
+        }
+
+        var changed = await _contactService.ChangePasswordAsync(id, request, callerEmail, cancellationToken);
         if (!changed)
         {
             return NotFound();

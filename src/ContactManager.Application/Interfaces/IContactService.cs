@@ -18,10 +18,11 @@ public interface IContactService
     /// when the new email is taken by another contact and ConcurrencyConflictException on a RowVersion mismatch.
     Task<ContactResponseDto?> UpdateAsync(Guid id, UpdateContactRequestDto request, CancellationToken cancellationToken = default);
 
-    /// Deletes a contact. Returns false when it does not exist.
+    /// Deletes a contact together with its login account. Returns false when it does not exist.
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 
-    /// Changes a contact's password (rehashes it). Returns false when the contact does not exist.
-    /// Throws ConcurrencyConflictException on a RowVersion mismatch.
-    Task<bool> ChangePasswordAsync(Guid id, ChangeContactPasswordRequestDto request, CancellationToken cancellationToken = default);
+    /// Changes a contact's password (rehashes it) and the matching login account. Returns false when
+    /// the contact does not exist. Throws ForbiddenActionException when <paramref name="callerEmail"/>
+    /// differs from the contact's email, and ConcurrencyConflictException on a RowVersion mismatch.
+    Task<bool> ChangePasswordAsync(Guid id, ChangeContactPasswordRequestDto request, string callerEmail, CancellationToken cancellationToken = default);
 }

@@ -56,6 +56,13 @@ export interface UpdateContactRequest {
   rowVersion: number;
 }
 
+// Mirrors ChangeContactPasswordRequestDto. RowVersion is the optimistic-concurrency token
+// read with the contact (a stale value yields a 409).
+export interface ChangeContactPasswordRequest {
+  newPassword: string;
+  rowVersion: number;
+}
+
 // Mirrors SubcategoryResponseDto.
 export interface SubcategoryResponse {
   id: number;

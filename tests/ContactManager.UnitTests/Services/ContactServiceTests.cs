@@ -316,20 +316,22 @@ public class ContactServiceTests
         var result = await _sut.DeleteAsync(Guid.NewGuid());
 
         Assert.False(result);
-        await _contacts.DidNotReceive().DeleteAsync(Arg.Any<Contact>(), Arg.Any<CancellationToken>());
+        await _contacts.DidNotReceive().DeleteAsync(Arg.Any<Contact>(), Arg.Any<User?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task DeleteAsync_Found_DeletesAndReturnsTrue()
+    public async Task DeleteAsync_Found_DeletesContactWithItsLoginAccount()
     {
         var id = Guid.NewGuid();
         var contact = ContactEntity(id);
+        var loginUser = new User { Id = Guid.NewGuid(), Email = contact.Email, PasswordHash = "x" };
         _contacts.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(contact);
+        _users.GetByEmailAsync(contact.Email, Arg.Any<CancellationToken>()).Returns(loginUser);
 
         var result = await _sut.DeleteAsync(id);
 
         Assert.True(result);
-        await _contacts.Received(1).DeleteAsync(contact, Arg.Any<CancellationToken>());
+        await _contacts.Received(1).DeleteAsync(contact, loginUser, Arg.Any<CancellationToken>());
     }
 
     // ----- ChangePasswordAsync -----
@@ -338,24 +340,40 @@ public class ContactServiceTests
     public async Task ChangePasswordAsync_NotFound_ReturnsFalse()
     {
         var result = await _sut.ChangePasswordAsync(
-            Guid.NewGuid(), new ChangeContactPasswordRequestDto("newpass12", 1));
+            Guid.NewGuid(), new ChangeContactPasswordRequestDto("newpass12", 1), "jan@example.com");
 
         Assert.False(result);
         await _contacts.DidNotReceive().UpdateAsync(Arg.Any<Contact>(), Arg.Any<uint>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ChangePasswordAsync_Found_RehashesAndForwardsRowVersion()
+    public async Task ChangePasswordAsync_DifferentEmail_ThrowsForbiddenAndDoesNotPersist()
+    {
+        var id = Guid.NewGuid();
+        _contacts.GetByIdAsync(id, Arg.Any<CancellationToken>())
+            .Returns(ContactEntity(id, email: "owner@example.com"));
+
+        await Assert.ThrowsAsync<ForbiddenActionException>(() => _sut.ChangePasswordAsync(
+            id, new ChangeContactPasswordRequestDto("newpass12", 9), "intruder@example.com"));
+
+        await _contacts.DidNotReceive().UpdateAsync(Arg.Any<Contact>(), Arg.Any<uint>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_SameEmail_RehashesContactAndLoginAndForwardsRowVersion()
     {
         var id = Guid.NewGuid();
         var contact = ContactEntity(id);
+        var loginUser = new User { Id = Guid.NewGuid(), Email = contact.Email, PasswordHash = "HASHED:old" };
         _contacts.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(contact);
+        _users.GetByEmailAsync(contact.Email, Arg.Any<CancellationToken>()).Returns(loginUser);
 
         var result = await _sut.ChangePasswordAsync(
-            id, new ChangeContactPasswordRequestDto("newpass12", 9));
+            id, new ChangeContactPasswordRequestDto("newpass12", 9), "jan@example.com");
 
         Assert.True(result);
         Assert.Equal("HASHED:newpass12", contact.PasswordHash);
+        Assert.Equal("HASHED:newpass12", loginUser.PasswordHash);
         await _contacts.Received(1).UpdateAsync(contact, 9u, Arg.Any<CancellationToken>());
     }
 

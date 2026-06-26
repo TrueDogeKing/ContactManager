@@ -22,6 +22,7 @@ public interface IContactRepository
     /// the client fetched on read. Throws ConcurrencyConflictException when the contact was modified meanwhile.
     Task UpdateAsync(Contact contact, uint expectedRowVersion, CancellationToken cancellationToken = default);
 
-    /// Removes a contact and saves changes.
-    Task DeleteAsync(Contact contact, CancellationToken cancellationToken = default);
+    /// Removes a contact together with its login account (when present), in a single transaction,
+    /// and saves changes.
+    Task DeleteAsync(Contact contact, User? loginUser, CancellationToken cancellationToken = default);
 }
